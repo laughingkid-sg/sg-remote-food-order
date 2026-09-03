@@ -11,7 +11,8 @@
       "name": "admin",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev:admin"],
-      "port": 5173
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }
