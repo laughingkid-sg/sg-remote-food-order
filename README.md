@@ -35,16 +35,24 @@ The site runs immediately using the local seed data in [`data/seed.ts`](data/see
 
 ## Wiring up Supabase
 
-1. Create a Supabase project.
-2. Run the schema and seed against it (SQL editor, or the Supabase CLI):
-   - [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
-   - [`supabase/seed.sql`](supabase/seed.sql)
-3. Copy `.env.example` to `.env.local` and fill in:
+The schema and initial 10 stores live in `supabase/migrations/`:
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=...
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-   ```
+- [`20260903000001_init.sql`](supabase/migrations/20260903000001_init.sql) — schema + public read-only RLS
+- [`20260903000002_seed_stores.sql`](supabase/migrations/20260903000002_seed_stores.sql) — the 10 seed stores
+
+Link the project and push both migrations (needs your database password):
+
+```bash
+supabase link --project-ref slgfsqdzynodxbqptpwi
+supabase db push
+```
+
+Then copy `.env.example` to `.env.local` and fill in from the project's API settings:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
 
 When these env vars are set the data layer reads from Supabase; otherwise it falls
 back to the local seed. The data is public read-only (enforced by RLS); writes go
