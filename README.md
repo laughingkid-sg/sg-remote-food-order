@@ -1,79 +1,36 @@
 # SG Remote Food Order
 
-A statically-generated business directory of Singapore stores you can order from
-before you arrive — **scan-to-order QR** spots and **app-based** chains — searchable
-by region and service tag. Built for SEO: every store, region and tag is a
-pre-rendered page with its own URL, metadata and structured data.
+A directory of Singapore stores you can order from before you arrive — scan-to-order
+QR spots and app-based chains. Monorepo with two apps sharing one Supabase project.
 
-## Stack
+```
+.
+├── web/        # Public directory — Next.js 15, statically generated for SEO
+├── admin/      # Admin console — Vite + React SPA, Supabase Auth, creates records
+└── supabase/   # Shared schema, RLS policies and migrations
+```
 
-- **Next.js 15** (App Router) — static generation (SSG) at build time
-- **TypeScript** + **Tailwind CSS v4**
-- **Supabase** (Postgres) — the source of truth, read at build time
-- Client-side search over the full dataset (no runtime server needed)
+## Setup
 
-## Two store types
-
-| | App store (e.g. McDonald's) | QR store |
-|---|---|---|
-| Entries | One per brand | One per **branch** |
-| Address | Usually none (in their app) | Yes, collected per branch |
-| CTA | iOS / Android download links | Direct order link (behind the QR) |
-
-Service tags (`takeaway`, `delivery`, `dine-in`) are separate from the store type
-(`app` vs `qr`) and are shown as filterable pills.
-
-## Getting started
+Uses npm workspaces — one install covers both apps:
 
 ```bash
 npm install
-npm run dev
 ```
 
-The site runs immediately using the local seed data in [`data/seed.ts`](data/seed.ts)
-— no Supabase needed for local development.
-
-## Wiring up Supabase
-
-The schema and initial 10 stores live in `supabase/migrations/`:
-
-- [`20260903000001_init.sql`](supabase/migrations/20260903000001_init.sql) — schema + public read-only RLS
-- [`20260903000002_seed_stores.sql`](supabase/migrations/20260903000002_seed_stores.sql) — the 10 seed stores
-
-Link the project and push both migrations (needs your database password):
-
-```bash
-supabase link --project-ref slgfsqdzynodxbqptpwi
-supabase db push
-```
-
-Then copy `.env.example` to `.env.local` and fill in from the project's API settings:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
-```
-
-When these env vars are set the data layer reads from Supabase; otherwise it falls
-back to the local seed. The data is public read-only (enforced by RLS); writes go
-through the dashboard or the service role.
-
-## Static generation & rebuilds
-
-Store data is fetched during `next build`, so **content changes require a rebuild**.
-For a slowly-changing directory, either rebuild on a schedule or trigger a deploy
-webhook when data changes.
-
-```bash
-npm run build   # prerenders /, /region/*, /store/*, /tag/*, sitemap.xml
-```
-
-## Routes
-
-| Route | Purpose |
+| Command | What it does |
 |---|---|
-| `/` | Search + browse |
-| `/store/[slug]` | Single store (QR order link or app downloads) |
-| `/region/[region]` | Stores in a CDC region (central / north / north-east / east / west) |
-| `/tag/[tag]` | Stores by service (takeaway / delivery / dine-in) |
-| `/sitemap.xml` | Generated sitemap |
+| `npm run dev:web` | Public site at http://localhost:3000 |
+| `npm run build:web` | Static build of the public site |
+| `npm run dev:admin` | Admin console at http://localhost:5173 |
+| `npm run build:admin` | Production build of the admin console |
+
+Each app has its own `.env` (`.env.local` for `web/`, `.env` for `admin/`) — see the
+`.env.example` in each and the app-level READMEs.
+
+## Supabase
+
+The schema, RLS and seed live in [`supabase/migrations/`](supabase/migrations) and are
+shared by both apps. The public site reads with the **anon** key (read-only RLS); the
+admin console authenticates with **Supabase Auth** and writes under authenticated-only
+RLS policies. See [web/README.md](web/README.md) and [admin/README.md](admin/README.md).
