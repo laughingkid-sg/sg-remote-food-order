@@ -1,8 +1,6 @@
 import { useState } from "react";
 
-/** A searchable, selectable dropdown that also allows free-text entry — so you
- *  can pick an existing option or type a brand-new value. Unlike a native
- *  <datalist>, the list is always visible on focus across browsers. */
+/** A searchable multi-select dropdown that also accepts free-text entries. */
 export function Combobox({
   id,
   value,
@@ -11,35 +9,76 @@ export function Combobox({
   placeholder,
 }: {
   id?: string;
-  value: string;
-  onChange: (v: string) => void;
+  value: string[];
+  onChange: (v: string[]) => void;
   options: string[];
   placeholder?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
 
-  const q = value.trim().toLowerCase();
-  const filtered = q ? options.filter((o) => o.toLowerCase().includes(q)) : options;
-  const isNew = q !== "" && !options.some((o) => o.toLowerCase() === q);
+  const q = query.trim().toLowerCase();
+  const selectedNames = new Set(value.map((name) => name.toLowerCase()));
+  const filtered = (q ? options.filter((o) => o.toLowerCase().includes(q)) : options).filter(
+    (option) => !selectedNames.has(option.toLowerCase()),
+  );
+  const isNew = q !== "" && !selectedNames.has(q) && !options.some((o) => o.toLowerCase() === q);
+
+  function add(rawValue: string) {
+    const trimmed = rawValue.trim();
+    if (!trimmed || selectedNames.has(trimmed.toLowerCase())) return;
+    const existingOption = options.find(
+      (option) => option.toLowerCase() === trimmed.toLowerCase(),
+    );
+    onChange([...value, existingOption ?? trimmed]);
+    setQuery("");
+    setOpen(false);
+  }
+
+  function remove(name: string) {
+    onChange(value.filter((item) => item !== name));
+  }
 
   return (
     <div className="combobox">
-      <input
-        id={id}
-        type="text"
-        value={value}
-        placeholder={placeholder}
-        autoComplete="off"
-        onChange={(e) => {
-          onChange(e.target.value);
-          setOpen(true);
-        }}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") setOpen(false);
-        }}
-      />
+      <div className="combobox-input">
+        {value.map((name) => (
+          <span key={name} className="combobox-chip">
+            {name}
+            <button
+              type="button"
+              className="combobox-chip-remove"
+              onClick={() => remove(name)}
+              aria-label={`Remove ${name}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <input
+          id={id}
+          type="text"
+          value={query}
+          placeholder={value.length === 0 ? placeholder : "Add another…"}
+          autoComplete="off"
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim()) {
+              e.preventDefault();
+              add(query);
+            } else if (e.key === "Backspace" && !query && value.length > 0) {
+              remove(value[value.length - 1]);
+            } else if (e.key === "Escape") {
+              setOpen(false);
+            }
+          }}
+        />
+      </div>
       {open && (filtered.length > 0 || isNew) && (
         <ul className="combobox-list">
           {isNew && (
@@ -49,10 +88,10 @@ export function Combobox({
                 className="combobox-option combobox-new"
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  setOpen(false);
+                  add(query);
                 }}
               >
-                Add “{value.trim()}”
+                Add “{query.trim()}”
               </button>
             </li>
           )}
@@ -64,8 +103,7 @@ export function Combobox({
                 // mousedown fires before the input's blur, so the click registers.
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  onChange(o);
-                  setOpen(false);
+                  add(o);
                 }}
               >
                 {o}

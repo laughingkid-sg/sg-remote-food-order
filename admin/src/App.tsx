@@ -6,6 +6,11 @@ import { StoreForm } from "./components/StoreForm";
 import { StoreList } from "./components/StoreList";
 import type { Area, Cuisine, ServiceTag, StoreRecord } from "./types";
 
+function normaliseCuisine(cuisine: string[] | string | null): string[] {
+  const values = Array.isArray(cuisine) ? cuisine : cuisine?.split(/\s*-\s*/) ?? [];
+  return values.map((value) => value.trim()).filter(Boolean);
+}
+
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -42,7 +47,7 @@ function Dashboard({ email }: { email: string }) {
       supabase
         .from("stores")
         .select(
-          "id, slug, name, type, description, cuisine, logo_url, region, area, address, postal_code, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
+          "id, slug, name, type, description, cuisine, logo_url, region, area, address, postal_code, google_maps_url, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
         )
         .order("name"),
       supabase.from("cuisines").select("id, name").order("name"),
@@ -57,7 +62,11 @@ function Dashboard({ email }: { email: string }) {
       const { store_tags, ...rest } = r as typeof r & {
         store_tags: { tag: ServiceTag }[] | null;
       };
-      return { ...rest, tags: (store_tags ?? []).map((t) => t.tag) } as StoreRecord;
+      return {
+        ...rest,
+        cuisine: normaliseCuisine(rest.cuisine),
+        tags: (store_tags ?? []).map((t) => t.tag),
+      } as StoreRecord;
     });
     setStores(rows);
     if (!cuisinesRes.error) setCuisines((cuisinesRes.data ?? []) as Cuisine[]);

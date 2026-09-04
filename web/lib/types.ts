@@ -22,7 +22,7 @@ export interface Store {
   type: StoreType;
   /** Short description / cuisine blurb for cards and meta description. */
   description: string;
-  cuisine: string;
+  cuisine: string[];
   logoUrl: string | null;
   /** Region within Singapore. Null for brand-wide app stores (nationwide). */
   region: RegionSlug | null;
@@ -31,8 +31,10 @@ export interface Store {
   area: string | null;
   /** Human-readable address. Present for QR stores; usually null for app stores. */
   address: string | null;
-  /** Singapore postal code (6 digits). Useful for search + Google Maps lookup. */
+  /** Singapore postal code (6 digits). Useful for search and display. */
   postalCode: string | null;
+  /** Canonical Google Maps link for the store’s exact map pin. */
+  googleMapsUrl: string | null;
   /** Service tags such as takeaway / delivery. */
   tags: ServiceTag[];
 
@@ -51,7 +53,7 @@ export interface SearchDoc {
   slug: string;
   name: string;
   type: StoreType;
-  cuisine: string;
+  cuisine: string[];
   region: RegionSlug | null;
   area: string | null;
   tags: ServiceTag[];

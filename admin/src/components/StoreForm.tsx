@@ -192,7 +192,14 @@ export function StoreForm({
     setError(null);
     setBusy(true);
 
-    const cuisine = draft.cuisine.trim();
+    const cuisine = Array.from(
+      new Map(
+        draft.cuisine
+          .map((name) => name.trim())
+          .filter(Boolean)
+          .map((name) => [name.toLowerCase(), name]),
+      ).values(),
+    );
     const row = {
       slug: draft.slug.trim(),
       name: draft.name.trim(),
@@ -204,18 +211,21 @@ export function StoreForm({
       area: orNull(draft.area ?? ""),
       address: orNull(draft.address ?? ""),
       postal_code: orNull(draft.postal_code ?? ""),
+      google_maps_url: orNull(draft.google_maps_url ?? ""),
       order_url: draft.type === "qr" ? orNull(draft.order_url ?? "") : null,
       app_ios_url: draft.type === "app" ? orNull(draft.app_ios_url ?? "") : null,
       app_android_url: draft.type === "app" ? orNull(draft.app_android_url ?? "") : null,
       featured: draft.featured,
     };
 
-    // Persist a brand-new cuisine into the vocabulary so it becomes a default.
-    const isNewCuisine =
-      cuisine !== "" &&
-      !cuisines.some((c) => c.name.toLowerCase() === cuisine.toLowerCase());
-    if (isNewCuisine) {
-      await supabase.from("cuisines").insert({ name: cuisine });
+    // Persist each brand-new cuisine into the vocabulary so it becomes a default.
+    const existingCuisineNames = new Set(cuisines.map((c) => c.name.toLowerCase()));
+    const newCuisineNames = cuisine.filter((name) => !existingCuisineNames.has(name.toLowerCase()));
+    if (newCuisineNames.length > 0) {
+      const { error } = await supabase
+        .from("cuisines")
+        .insert(newCuisineNames.map((name) => ({ name })));
+      if (error) return fail(error.message);
     }
 
     let storeId = editingId;
@@ -397,8 +407,21 @@ export function StoreForm({
         </div>
 
         <div className="field">
+          <label htmlFor="google-maps-url">
+            Google Maps link <span className="hint">— optional; use the store’s exact pin</span>
+          </label>
+          <input
+            id="google-maps-url"
+            type="url"
+            value={draft.google_maps_url ?? ""}
+            onChange={(e) => set("google_maps_url", e.target.value)}
+            placeholder="https://maps.app.goo.gl/…"
+          />
+        </div>
+
+        <div className="field">
           <label htmlFor="cuisine">
-            Cuisine <span className="hint">— pick one or type a new one</span>
+            Cuisines <span className="hint">— select one or more, or add a new one</span>
           </label>
           <Combobox
             id="cuisine"
