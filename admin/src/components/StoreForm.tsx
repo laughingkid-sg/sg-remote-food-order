@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "../supabase";
+import { Combobox } from "./Combobox";
 import {
   REGIONS,
   SERVICE_TAGS,
@@ -272,19 +273,13 @@ export function StoreForm({
           <label htmlFor="cuisine">
             Cuisine <span className="hint">— pick one or type a new one</span>
           </label>
-          <input
+          <Combobox
             id="cuisine"
-            type="text"
-            list="cuisine-list"
             value={draft.cuisine}
-            onChange={(e) => set("cuisine", e.target.value)}
+            onChange={(v) => set("cuisine", v)}
+            options={cuisines.map((c) => c.name)}
             placeholder="e.g. Local, Japanese…"
           />
-          <datalist id="cuisine-list">
-            {cuisines.map((c) => (
-              <option key={c.id} value={c.name} />
-            ))}
-          </datalist>
         </div>
 
         <div className="row">
