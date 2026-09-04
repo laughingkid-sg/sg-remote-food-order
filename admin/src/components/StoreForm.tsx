@@ -192,7 +192,14 @@ export function StoreForm({
     setError(null);
     setBusy(true);
 
-    const cuisine = draft.cuisine.trim();
+    const cuisine = Array.from(
+      new Map(
+        draft.cuisine
+          .map((name) => name.trim())
+          .filter(Boolean)
+          .map((name) => [name.toLowerCase(), name]),
+      ).values(),
+    );
     const row = {
       slug: draft.slug.trim(),
       name: draft.name.trim(),
@@ -210,12 +217,14 @@ export function StoreForm({
       featured: draft.featured,
     };
 
-    // Persist a brand-new cuisine into the vocabulary so it becomes a default.
-    const isNewCuisine =
-      cuisine !== "" &&
-      !cuisines.some((c) => c.name.toLowerCase() === cuisine.toLowerCase());
-    if (isNewCuisine) {
-      await supabase.from("cuisines").insert({ name: cuisine });
+    // Persist each brand-new cuisine into the vocabulary so it becomes a default.
+    const existingCuisineNames = new Set(cuisines.map((c) => c.name.toLowerCase()));
+    const newCuisineNames = cuisine.filter((name) => !existingCuisineNames.has(name.toLowerCase()));
+    if (newCuisineNames.length > 0) {
+      const { error } = await supabase
+        .from("cuisines")
+        .insert(newCuisineNames.map((name) => ({ name })));
+      if (error) return fail(error.message);
     }
 
     let storeId = editingId;
@@ -398,7 +407,7 @@ export function StoreForm({
 
         <div className="field">
           <label htmlFor="cuisine">
-            Cuisine <span className="hint">— pick one or type a new one</span>
+            Cuisines <span className="hint">— select one or more, or add a new one</span>
           </label>
           <Combobox
             id="cuisine"

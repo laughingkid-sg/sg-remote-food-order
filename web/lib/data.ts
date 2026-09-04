@@ -10,7 +10,7 @@ interface StoreRow {
   name: string;
   type: StoreType;
   description: string;
-  cuisine: string;
+  cuisine: string[] | string;
   logo_url: string | null;
   region: RegionSlug | null;
   area: string | null;
@@ -23,13 +23,18 @@ interface StoreRow {
   store_tags: { tag: ServiceTag }[] | null;
 }
 
+function normaliseCuisine(cuisine: StoreRow["cuisine"]): string[] {
+  const values = Array.isArray(cuisine) ? cuisine : cuisine.split(/\s*-\s*/);
+  return values.map((value) => value.trim()).filter(Boolean);
+}
+
 function rowToStore(row: StoreRow): Store {
   return {
     slug: row.slug,
     name: row.name,
     type: row.type,
     description: row.description,
-    cuisine: row.cuisine,
+    cuisine: normaliseCuisine(row.cuisine),
     logoUrl:
       row.logo_url && process.env.NODE_ENV === "production"
         ? `/store-logos/${row.slug}.webp`

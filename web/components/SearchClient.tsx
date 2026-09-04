@@ -44,7 +44,7 @@ export function SearchClient({ stores }: { stores: Store[] }) {
       if (!q) return true;
       return (
         s.name.toLowerCase().includes(q) ||
-        s.cuisine.toLowerCase().includes(q) ||
+        s.cuisine.some((cuisine) => cuisine.toLowerCase().includes(q)) ||
         (s.area?.toLowerCase().includes(q) ?? false) ||
         (s.address?.toLowerCase().includes(q) ?? false) ||
         (s.postalCode?.includes(q) ?? false)

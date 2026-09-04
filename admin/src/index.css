@@ -257,6 +257,55 @@ button.danger:hover {
   position: relative;
 }
 
+.combobox-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.combobox-input:focus-within {
+  border-color: var(--accent);
+}
+
+.combobox-input input {
+  flex: 1 1 160px;
+  min-width: 0;
+  width: auto;
+  padding: 3px 4px;
+  border: 0;
+  outline: 0;
+}
+
+.combobox-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px 3px 8px;
+  border-radius: 999px;
+  background: #d1fae5;
+  color: var(--accent-hover);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.combobox-chip-remove {
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.combobox-chip-remove:hover {
+  background: transparent;
+}
+
 .combobox-list {
   position: absolute;
   z-index: 20;

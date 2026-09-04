@@ -35,7 +35,7 @@ export interface StoreRecord {
   name: string;
   type: StoreType;
   description: string;
-  cuisine: string;
+  cuisine: string[];
   logo_url: string | null;
   region: RegionSlug | null;
   area: string | null;
@@ -57,7 +57,7 @@ export function emptyDraft(): StoreDraft {
     name: "",
     type: "qr",
     description: "",
-    cuisine: "",
+    cuisine: [],
     logo_url: null,
     region: "central",
     area: "",

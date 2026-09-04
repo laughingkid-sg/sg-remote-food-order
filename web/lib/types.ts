@@ -22,7 +22,7 @@ export interface Store {
   type: StoreType;
   /** Short description / cuisine blurb for cards and meta description. */
   description: string;
-  cuisine: string;
+  cuisine: string[];
   logoUrl: string | null;
   /** Region within Singapore. Null for brand-wide app stores (nationwide). */
   region: RegionSlug | null;
@@ -51,7 +51,7 @@ export interface SearchDoc {
   slug: string;
   name: string;
   type: StoreType;
-  cuisine: string;
+  cuisine: string[];
   region: RegionSlug | null;
   area: string | null;
   tags: ServiceTag[];

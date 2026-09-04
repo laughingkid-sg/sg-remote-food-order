@@ -44,7 +44,7 @@ export function StoreList({
     return (
       s.name.toLowerCase().includes(q) ||
       s.slug.toLowerCase().includes(q) ||
-      s.cuisine.toLowerCase().includes(q) ||
+      s.cuisine.some((cuisine) => cuisine.toLowerCase().includes(q)) ||
       (s.region?.toLowerCase().includes(q) ?? false) ||
       (s.area?.toLowerCase().includes(q) ?? false) ||
       (s.postal_code?.includes(q) ?? false)
@@ -117,7 +117,7 @@ export function StoreList({
                     ? `${store.area}, ${REGION_NAME.get(store.region)}`
                     : REGION_NAME.get(store.region)
                   : "Nationwide"}{" "}
-                · {store.cuisine || "—"}
+                · {store.cuisine.length > 0 ? store.cuisine.join(" · ") : "—"}
                 {store.tags.length > 0 && ` · ${store.tags.join(", ")}`}
               </div>
             </div>

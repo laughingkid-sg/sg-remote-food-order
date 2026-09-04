@@ -25,8 +25,10 @@ export function StoreCard({ store }: { store: Store }) {
       </div>
       <div className="mb-2.5 flex flex-wrap items-center gap-2">
         <TypePill type={store.type} />
-        {store.cuisine && (
-          <span className="text-sm text-stone-600 dark:text-stone-400">{store.cuisine}</span>
+        {store.cuisine.length > 0 && (
+          <span className="text-sm text-stone-600 dark:text-stone-400">
+            {store.cuisine.join(" · ")}
+          </span>
         )}
       </div>
       {region && (

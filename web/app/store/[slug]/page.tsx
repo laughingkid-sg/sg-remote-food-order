@@ -99,7 +99,11 @@ export default async function StorePage({
           )}
           <h1 className="text-3xl font-bold tracking-tight">{store.name}</h1>
         </div>
-        <p className="mt-1 text-stone-600 dark:text-stone-400">{store.cuisine}</p>
+        {store.cuisine.length > 0 && (
+          <p className="mt-1 text-stone-600 dark:text-stone-400">
+            {store.cuisine.join(" · ")}
+          </p>
+        )}
       </header>
 
       <p className="mb-6 text-stone-700 dark:text-stone-300">{store.description}</p>
