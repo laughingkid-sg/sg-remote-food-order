@@ -32,7 +32,7 @@ export function SearchClient({ stores }: { stores: Store[] }) {
     const q = query.trim().toLowerCase();
     const regionSet = new Set(regions);
     const areaSet = new Set(areas);
-    const noLocation = regions.length === 0 && areas.length === 0;
+    const noLocation = type === "app" || (regions.length === 0 && areas.length === 0);
     return stores.filter((s) => {
       if (type !== "all" && s.type !== type) return false;
       if (
@@ -59,19 +59,30 @@ export function SearchClient({ stores }: { stores: Store[] }) {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search stores, cuisine or area…"
+          placeholder={type === "app" ? "Search stores or cuisine…" : "Search stores, cuisine or area…"}
           className="w-full rounded-lg border border-black/15 bg-white px-4 py-3 text-base outline-none focus:border-black/40 dark:border-white/15 dark:bg-stone-900"
           aria-label="Search stores"
         />
         <RegionAreaFilter
           areasByRegion={areasByRegion}
-          selectedRegions={regions}
-          selectedAreas={areas}
+          selectedRegions={type === "app" ? [] : regions}
+          selectedAreas={type === "app" ? [] : areas}
+          disabled={type === "app"}
           onChange={(r, a) => {
             setRegions(r);
             setAreas(a);
           }}
         />
+        {type === "app" && (
+          <p className="text-xs text-stone-500 dark:text-stone-400">
+            Region filtering isn&apos;t supported for app listings yet.
+          </p>
+        )}
+        {type === "all" && (regions.length > 0 || areas.length > 0) && (
+          <p className="text-xs text-stone-500 dark:text-stone-400">
+            App listings don&apos;t support region filtering and aren&apos;t included in these results.
+          </p>
+        )}
       </div>
 
       <div

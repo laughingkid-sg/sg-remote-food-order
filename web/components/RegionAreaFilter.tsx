@@ -32,11 +32,13 @@ export function RegionAreaFilter({
   areasByRegion,
   selectedRegions,
   selectedAreas,
+  disabled = false,
   onChange,
 }: {
   areasByRegion: Map<RegionSlug, string[]>;
   selectedRegions: RegionSlug[];
   selectedAreas: string[];
+  disabled?: boolean;
   onChange: (regions: RegionSlug[], areas: string[]) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -98,7 +100,8 @@ export function RegionAreaFilter({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between rounded-lg border border-black/15 bg-white px-3 py-2.5 text-left text-base dark:border-white/15 dark:bg-stone-900"
+        disabled={disabled}
+        className="flex w-full items-center justify-between rounded-lg border border-black/15 bg-white px-3 py-2.5 text-left text-base disabled:cursor-not-allowed disabled:bg-stone-100 disabled:text-stone-400 disabled:opacity-70 dark:border-white/15 dark:bg-stone-900 dark:disabled:bg-stone-800 dark:disabled:text-stone-500"
         aria-haspopup="true"
         aria-expanded={open}
       >
