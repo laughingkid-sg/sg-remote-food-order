@@ -88,12 +88,17 @@ export function StoreForm({
     areasByRegion.set(a.region, arr);
   }
 
-  const locationValue = draft.area
-    ? `a:${draft.region}|${draft.area}`
-    : `r:${draft.region}`;
+  const locationValue =
+    draft.region === null
+      ? "none"
+      : draft.area
+        ? `a:${draft.region}|${draft.area}`
+        : `r:${draft.region}`;
 
   function onLocationChange(v: string) {
-    if (v.startsWith("a:")) {
+    if (v === "none") {
+      setDraft((d) => ({ ...d, region: null, area: "" }));
+    } else if (v.startsWith("a:")) {
       const [r, name] = v.slice(2).split("|");
       setDraft((d) => ({ ...d, region: r as RegionSlug, area: name }));
     } else {
@@ -108,6 +113,8 @@ export function StoreForm({
     if (!slug) return "Slug is required.";
     if (!/^[a-z0-9-]+$/.test(slug))
       return "Slug can only contain lowercase letters, numbers and hyphens.";
+    if (draft.type === "qr" && !draft.region)
+      return "A location is required for order-link stores.";
     if (draft.type === "qr" && !(draft.order_url ?? "").trim())
       return "An Order URL is required for order-link stores.";
     if (
@@ -207,7 +214,19 @@ export function StoreForm({
             <SelectMenu
               id="type"
               value={draft.type}
-              onChange={(v) => set("type", v as StoreType)}
+              onChange={(v) => {
+                const t = v as StoreType;
+                setDraft((d) => ({
+                  ...d,
+                  type: t,
+                  // Apps are brand-wide → clear location; order-link needs one.
+                  ...(t === "app"
+                    ? { region: null, area: "" }
+                    : d.region === null
+                      ? { region: "central", area: "" }
+                      : {}),
+                }));
+              }}
               ariaLabel="Type"
               groups={[
                 {
@@ -222,23 +241,30 @@ export function StoreForm({
           </div>
           <div className="field">
             <label htmlFor="location">
-              Location <Req /> <span className="hint">— region › area</span>
+              Location {draft.type === "qr" && <Req />}{" "}
+              <span className="hint">— region › area</span>
             </label>
             <SelectMenu
               id="location"
               value={locationValue}
               onChange={onLocationChange}
               ariaLabel="Location"
-              groups={REGIONS.map((r) => ({
-                label: r.name,
-                options: [
-                  { value: `r:${r.slug}`, label: `${r.name} (Others)` },
-                  ...(areasByRegion.get(r.slug) ?? []).map((a) => ({
-                    value: `a:${r.slug}|${a.name}`,
-                    label: a.name,
-                  })),
-                ],
-              }))}
+              groups={[
+                {
+                  label: null,
+                  options: [{ value: "none", label: "Nationwide (no region)" }],
+                },
+                ...REGIONS.map((r) => ({
+                  label: r.name,
+                  options: [
+                    { value: `r:${r.slug}`, label: `${r.name} (Others)` },
+                    ...(areasByRegion.get(r.slug) ?? []).map((a) => ({
+                      value: `a:${r.slug}|${a.name}`,
+                      label: a.name,
+                    })),
+                  ],
+                })),
+              ]}
             />
           </div>
         </div>

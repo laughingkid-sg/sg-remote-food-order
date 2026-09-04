@@ -19,7 +19,7 @@ export function SearchClient({ stores }: { stores: Store[] }) {
   const areasByRegion = useMemo(() => {
     const map = new Map<RegionSlug, string[]>();
     for (const s of stores) {
-      if (!s.area) continue;
+      if (!s.region || !s.area) continue;
       const arr = map.get(s.region) ?? [];
       if (!arr.includes(s.area)) arr.push(s.area);
       map.set(s.region, arr);
@@ -37,7 +37,7 @@ export function SearchClient({ stores }: { stores: Store[] }) {
       if (type !== "all" && s.type !== type) return false;
       if (
         !noLocation &&
-        !regionSet.has(s.region) &&
+        !(s.region !== null && regionSet.has(s.region)) &&
         !(s.area !== null && areaSet.has(s.area))
       )
         return false;

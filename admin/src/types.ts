@@ -36,7 +36,7 @@ export interface StoreRecord {
   type: StoreType;
   description: string;
   cuisine: string;
-  region: RegionSlug;
+  region: RegionSlug | null;
   area: string | null;
   address: string | null;
   postal_code: string | null;

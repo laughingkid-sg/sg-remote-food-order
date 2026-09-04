@@ -41,7 +41,7 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const region = REGION_BY_SLUG.get(store.region);
+  const region = store.region ? REGION_BY_SLUG.get(store.region) : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",

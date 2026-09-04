@@ -4,7 +4,7 @@ import { REGION_BY_SLUG } from "@/data/regions";
 import { ServiceTagPill, TypePill } from "@/components/TagPill";
 
 export function StoreCard({ store }: { store: Store }) {
-  const region = REGION_BY_SLUG.get(store.region);
+  const region = store.region ? REGION_BY_SLUG.get(store.region) : undefined;
   return (
     <Link
       href={`/store/${store.slug}`}

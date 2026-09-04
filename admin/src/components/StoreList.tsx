@@ -43,7 +43,7 @@ export function StoreList({
       s.name.toLowerCase().includes(q) ||
       s.slug.toLowerCase().includes(q) ||
       s.cuisine.toLowerCase().includes(q) ||
-      s.region.toLowerCase().includes(q) ||
+      (s.region?.toLowerCase().includes(q) ?? false) ||
       (s.area?.toLowerCase().includes(q) ?? false) ||
       (s.postal_code?.includes(q) ?? false)
     );
@@ -110,8 +110,10 @@ export function StoreList({
                 {store.type === "app" ? "App" : "Order Link"}
               </span>
               <div className="hint">
-                {store.area ? `${store.area}, ${store.region}` : store.region} ·{" "}
-                {store.cuisine || "—"}
+                {store.area
+                  ? `${store.area}, ${store.region}`
+                  : (store.region ?? "Nationwide")}{" "}
+                · {store.cuisine || "—"}
                 {store.tags.length > 0 && ` · ${store.tags.join(", ")}`}
               </div>
             </div>

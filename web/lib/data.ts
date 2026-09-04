@@ -12,7 +12,7 @@ interface StoreRow {
   description: string;
   cuisine: string;
   logo_url: string | null;
-  region: RegionSlug;
+  region: RegionSlug | null;
   area: string | null;
   address: string | null;
   postal_code: string | null;

@@ -24,7 +24,8 @@ export interface Store {
   description: string;
   cuisine: string;
   logoUrl: string | null;
-  region: RegionSlug;
+  /** Region within Singapore. Null for brand-wide app stores (nationwide). */
+  region: RegionSlug | null;
   /** Sub-location within the region (e.g. "Tampines") for layer-2 filtering.
    *  Set for QR stores; usually null for brand-wide app stores. */
   area: string | null;
@@ -51,7 +52,7 @@ export interface SearchDoc {
   name: string;
   type: StoreType;
   cuisine: string;
-  region: RegionSlug;
+  region: RegionSlug | null;
   area: string | null;
   tags: ServiceTag[];
   address: string | null;
