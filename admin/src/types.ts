@@ -41,6 +41,7 @@ export interface StoreRecord {
   area: string | null;
   address: string | null;
   postal_code: string | null;
+  google_maps_url: string | null;
   order_url: string | null;
   app_ios_url: string | null;
   app_android_url: string | null;
@@ -63,6 +64,7 @@ export function emptyDraft(): StoreDraft {
     area: "",
     address: "",
     postal_code: "",
+    google_maps_url: "",
     order_url: "",
     app_ios_url: "",
     app_android_url: "",

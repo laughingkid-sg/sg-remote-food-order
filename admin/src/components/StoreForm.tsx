@@ -211,6 +211,7 @@ export function StoreForm({
       area: orNull(draft.area ?? ""),
       address: orNull(draft.address ?? ""),
       postal_code: orNull(draft.postal_code ?? ""),
+      google_maps_url: orNull(draft.google_maps_url ?? ""),
       order_url: draft.type === "qr" ? orNull(draft.order_url ?? "") : null,
       app_ios_url: draft.type === "app" ? orNull(draft.app_ios_url ?? "") : null,
       app_android_url: draft.type === "app" ? orNull(draft.app_android_url ?? "") : null,
@@ -403,6 +404,19 @@ export function StoreForm({
               required
             />
           </div>
+        </div>
+
+        <div className="field">
+          <label htmlFor="google-maps-url">
+            Google Maps link <span className="hint">— optional; use the store’s exact pin</span>
+          </label>
+          <input
+            id="google-maps-url"
+            type="url"
+            value={draft.google_maps_url ?? ""}
+            onChange={(e) => set("google_maps_url", e.target.value)}
+            placeholder="https://maps.app.goo.gl/…"
+          />
         </div>
 
         <div className="field">

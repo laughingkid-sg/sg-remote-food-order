@@ -16,6 +16,7 @@ interface StoreRow {
   area: string | null;
   address: string | null;
   postal_code: string | null;
+  google_maps_url: string | null;
   order_url: string | null;
   app_ios_url: string | null;
   app_android_url: string | null;
@@ -43,6 +44,7 @@ function rowToStore(row: StoreRow): Store {
     area: row.area,
     address: row.address,
     postalCode: row.postal_code,
+    googleMapsUrl: row.google_maps_url,
     tags: (row.store_tags ?? []).map((t) => t.tag),
     orderUrl: row.order_url,
     appIosUrl: row.app_ios_url,
@@ -63,7 +65,7 @@ export const getStores = cache(async (): Promise<Store[]> => {
   const { data, error } = await supabase
     .from("stores")
     .select(
-      "slug, name, type, description, cuisine, logo_url, region, area, address, postal_code, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
+      "slug, name, type, description, cuisine, logo_url, region, area, address, postal_code, google_maps_url, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
     )
     .order("name");
 

@@ -6,6 +6,16 @@ import { REGION_BY_SLUG } from "@/data/regions";
 import { SITE } from "@/lib/site";
 import { ServiceTagPill, TypePill } from "@/components/TagPill";
 
+function isHttpUrl(url: string | null): url is string {
+  if (!url) return false;
+  try {
+    const { protocol } = new URL(url);
+    return protocol === "https:" || protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export async function generateStaticParams() {
   const stores = await getStores();
   return stores.map((s) => ({ slug: s.slug }));
@@ -54,12 +64,7 @@ export default async function StorePage({
     url: `${SITE.url}/store/${store.slug}`,
   };
 
-  // Google Maps lookup — prefer the full address, fall back to the postal code.
-  const mapsQuery =
-    store.address ?? (store.postalCode ? `Singapore ${store.postalCode}` : null);
-  const mapsUrl = mapsQuery
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
-    : null;
+  const mapsUrl = isHttpUrl(store.googleMapsUrl) ? store.googleMapsUrl : null;
   // Only show the postal line separately if the address doesn't already contain it.
   const showPostalLine =
     store.postalCode && !(store.address?.includes(store.postalCode) ?? false);
@@ -121,17 +126,17 @@ export default async function StorePage({
               Singapore {store.postalCode}
             </p>
           )}
-          {mapsUrl && (
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-            >
-              📍 View on Google Maps →
-            </a>
-          )}
         </div>
+      )}
+      {mapsUrl && (
+        <a
+          href={mapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-6 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+        >
+          📍 View on Google Maps →
+        </a>
       )}
 
       <div className="mb-8 flex flex-wrap gap-1.5">
