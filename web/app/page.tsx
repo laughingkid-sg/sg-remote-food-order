@@ -13,8 +13,8 @@ export default async function HomePage() {
           Order ahead, skip the queue
         </h1>
         <p className="max-w-2xl text-stone-600 dark:text-stone-400">
-          Find Singapore stores you can order from before you arrive — scan-to-order QR
-          spots and app-based chains, searchable by region and service.
+          Find Singapore stores you can order from before you arrive — order-link
+          spots and app-based chains, searchable by region and area.
         </p>
       </section>
 

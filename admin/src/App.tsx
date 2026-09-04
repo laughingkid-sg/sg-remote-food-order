@@ -4,7 +4,7 @@ import { supabase } from "./supabase";
 import { Login } from "./components/Login";
 import { StoreForm } from "./components/StoreForm";
 import { StoreList } from "./components/StoreList";
-import type { ServiceTag, StoreRecord } from "./types";
+import type { Area, Cuisine, ServiceTag, StoreRecord } from "./types";
 
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -30,30 +30,38 @@ export function App() {
 
 function Dashboard({ email }: { email: string }) {
   const [stores, setStores] = useState<StoreRecord[]>([]);
+  const [cuisines, setCuisines] = useState<Cuisine[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
   const [editing, setEditing] = useState<StoreRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setError(null);
-    const { data, error } = await supabase
-      .from("stores")
-      .select(
-        "id, slug, name, type, description, cuisine, region, address, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
-      )
-      .order("name");
+    const [storesRes, cuisinesRes, areasRes] = await Promise.all([
+      supabase
+        .from("stores")
+        .select(
+          "id, slug, name, type, description, cuisine, region, area, address, postal_code, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
+        )
+        .order("name"),
+      supabase.from("cuisines").select("id, name").order("name"),
+      supabase.from("areas").select("id, name, region").order("name"),
+    ]);
     setLoading(false);
-    if (error) {
-      setError(error.message);
+    if (storesRes.error) {
+      setError(storesRes.error.message);
       return;
     }
-    const rows: StoreRecord[] = (data ?? []).map((r) => {
+    const rows: StoreRecord[] = (storesRes.data ?? []).map((r) => {
       const { store_tags, ...rest } = r as typeof r & {
         store_tags: { tag: ServiceTag }[] | null;
       };
       return { ...rest, tags: (store_tags ?? []).map((t) => t.tag) } as StoreRecord;
     });
     setStores(rows);
+    if (!cuisinesRes.error) setCuisines((cuisinesRes.data ?? []) as Cuisine[]);
+    if (!areasRes.error) setAreas((areasRes.data ?? []) as Area[]);
   }, []);
 
   useEffect(() => {
@@ -77,7 +85,13 @@ function Dashboard({ email }: { email: string }) {
         </div>
       </div>
 
-      <StoreForm key={editing?.id ?? "new"} initial={editing} onDone={onDone} />
+      <StoreForm
+        key={editing?.id ?? "new"}
+        initial={editing}
+        cuisines={cuisines}
+        areas={areas}
+        onDone={onDone}
+      />
 
       <h2>Stores {stores.length > 0 && `(${stores.length})`}</h2>
       {error && <div className="msg error">{error}</div>}

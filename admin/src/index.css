@@ -74,18 +74,26 @@ label {
   font-size: 12px;
 }
 
+.req {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="url"],
+input[type="search"],
 textarea,
 select {
   width: 100%;
-  padding: 9px 11px;
+  padding: 10px 11px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
-  font: inherit;
+  /* 16px avoids iOS Safari zooming the viewport on focus. */
+  font-size: 16px;
+  font-family: inherit;
   color: inherit;
 }
 
@@ -105,6 +113,24 @@ textarea {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+/* Stack paired fields on narrow screens. */
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  button {
+    padding: 11px 16px;
+  }
+  .store-item {
+    flex-wrap: wrap;
+  }
 }
 
 .checkboxes {
@@ -199,6 +225,103 @@ button.danger:hover {
 
 .store-item:last-child {
   border-bottom: none;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.combobox {
+  position: relative;
+}
+
+.combobox-list {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.combobox-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  color: var(--text);
+  font-weight: 400;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.combobox-option:hover {
+  background: var(--bg);
+}
+
+.combobox-new {
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+
+.combobox-sublist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.combobox-selected {
+  font-weight: 600;
+}
+
+.combobox-group {
+  padding: 8px 10px 2px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  font-weight: 400;
+  text-align: left;
+  cursor: pointer;
+}
+
+.select-trigger:hover {
+  background: #fff;
+}
+
+.select-caret {
+  color: var(--muted);
+  flex-shrink: 0;
 }
 
 .badge {

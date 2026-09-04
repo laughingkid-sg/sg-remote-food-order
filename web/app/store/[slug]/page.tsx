@@ -41,7 +41,7 @@ export default async function StorePage({
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const region = REGION_BY_SLUG.get(store.region);
+  const region = store.region ? REGION_BY_SLUG.get(store.region) : undefined;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -52,6 +52,16 @@ export default async function StorePage({
     areaServed: region?.name,
     url: `${SITE.url}/store/${store.slug}`,
   };
+
+  // Google Maps lookup — prefer the full address, fall back to the postal code.
+  const mapsQuery =
+    store.address ?? (store.postalCode ? `Singapore ${store.postalCode}` : null);
+  const mapsUrl = mapsQuery
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`
+    : null;
+  // Only show the postal line separately if the address doesn't already contain it.
+  const showPostalLine =
+    store.postalCode && !(store.address?.includes(store.postalCode) ?? false);
 
   return (
     <article className="mx-auto max-w-2xl">
@@ -68,12 +78,12 @@ export default async function StorePage({
         <div className="mb-2 flex items-center gap-2">
           <TypePill type={store.type} />
           {region && (
-            <Link
-              href={`/region/${region.slug}`}
-              className="text-sm text-stone-500 hover:underline"
-            >
-              {region.name}
-            </Link>
+            <span className="text-sm text-stone-500">
+              {store.area && <span>{store.area}, </span>}
+              <Link href={`/region/${region.slug}`} className="hover:underline">
+                {region.name}
+              </Link>
+            </span>
           )}
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{store.name}</h1>
@@ -82,12 +92,29 @@ export default async function StorePage({
 
       <p className="mb-6 text-stone-700 dark:text-stone-300">{store.description}</p>
 
-      {store.address && (
+      {(store.address || store.postalCode) && (
         <div className="mb-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
             Address
           </h2>
-          <p className="mt-1 text-stone-700 dark:text-stone-300">{store.address}</p>
+          {store.address && (
+            <p className="mt-1 text-stone-700 dark:text-stone-300">{store.address}</p>
+          )}
+          {showPostalLine && (
+            <p className="mt-1 text-stone-700 dark:text-stone-300">
+              Singapore {store.postalCode}
+            </p>
+          )}
+          {mapsUrl && (
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+            >
+              📍 View on Google Maps →
+            </a>
+          )}
         </div>
       )}
 

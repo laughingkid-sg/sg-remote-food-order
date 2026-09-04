@@ -15,6 +15,19 @@ export const REGIONS: { slug: RegionSlug; name: string }[] = [
 
 export const SERVICE_TAGS: ServiceTag[] = ["takeaway", "delivery", "dine-in"];
 
+/** A row from the managed `cuisines` vocabulary table. */
+export interface Cuisine {
+  id: number;
+  name: string;
+}
+
+/** A row from the `areas` vocabulary table (a sub-location within a region). */
+export interface Area {
+  id: number;
+  name: string;
+  region: RegionSlug;
+}
+
 /** A store row plus its tags, as used by the admin forms. */
 export interface StoreRecord {
   id: number;
@@ -23,8 +36,10 @@ export interface StoreRecord {
   type: StoreType;
   description: string;
   cuisine: string;
-  region: RegionSlug;
+  region: RegionSlug | null;
+  area: string | null;
   address: string | null;
+  postal_code: string | null;
   order_url: string | null;
   app_ios_url: string | null;
   app_android_url: string | null;
@@ -43,7 +58,9 @@ export function emptyDraft(): StoreDraft {
     description: "",
     cuisine: "",
     region: "central",
+    area: "",
     address: "",
+    postal_code: "",
     order_url: "",
     app_ios_url: "",
     app_android_url: "",
