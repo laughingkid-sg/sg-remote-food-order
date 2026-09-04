@@ -30,7 +30,10 @@ function rowToStore(row: StoreRow): Store {
     type: row.type,
     description: row.description,
     cuisine: row.cuisine,
-    logoUrl: row.logo_url,
+    logoUrl:
+      row.logo_url && process.env.NODE_ENV === "production"
+        ? `/store-logos/${row.slug}.webp`
+        : row.logo_url,
     region: row.region,
     area: row.area,
     address: row.address,

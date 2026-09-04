@@ -48,6 +48,7 @@ export default async function StorePage({
     "@type": "Restaurant",
     name: store.name,
     servesCuisine: store.cuisine,
+    ...(store.logoUrl ? { image: store.logoUrl } : {}),
     ...(store.address ? { address: store.address } : {}),
     areaServed: region?.name,
     url: `${SITE.url}/store/${store.slug}`,
@@ -86,7 +87,18 @@ export default async function StorePage({
             </span>
           )}
         </div>
-        <h1 className="text-3xl font-bold tracking-tight">{store.name}</h1>
+        <div className="flex items-center gap-4">
+          {store.logoUrl && (
+            <img
+              src={store.logoUrl}
+              alt={`${store.name} logo`}
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-xl border border-black/10 bg-white object-contain dark:border-white/10"
+            />
+          )}
+          <h1 className="text-3xl font-bold tracking-tight">{store.name}</h1>
+        </div>
         <p className="mt-1 text-stone-600 dark:text-stone-400">{store.cuisine}</p>
       </header>
 

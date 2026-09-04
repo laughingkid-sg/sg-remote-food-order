@@ -15,6 +15,27 @@ import {
   type StoreType,
 } from "../types";
 
+const LOGO_BUCKET = "store-logos";
+const MAX_LOGO_SIZE = 5 * 1024 * 1024;
+const LOGO_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+function logoExtension(file: File): string {
+  return file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+}
+
+function storagePathFromPublicUrl(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    const marker = `/storage/v1/object/public/${LOGO_BUCKET}/`;
+    const pathname = new URL(url).pathname;
+    return pathname.startsWith(marker)
+      ? decodeURIComponent(pathname.slice(marker.length))
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Turn "" into null for nullable columns. */
 function orNull(v: string): string | null {
   const t = v.trim();
@@ -59,6 +80,11 @@ export function StoreForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [clearLogo, setClearLogo] = useState(false);
+  const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(
+    initial?.logo_url ?? null,
+  );
   // Once the user edits the slug (or when editing an existing store), stop
   // auto-suggesting so we never rewrite a live URL.
   const [slugEdited, setSlugEdited] = useState(editingId !== null);
@@ -69,6 +95,16 @@ export function StoreForm({
     setDraft((d) => ({ ...d, slug: suggestSlug(d.name, d.area) }));
   }, [draft.name, draft.area, slugEdited]);
 
+  useEffect(() => {
+    if (!logoFile) {
+      setLogoPreviewUrl(clearLogo ? null : draft.logo_url);
+      return;
+    }
+    const previewUrl = URL.createObjectURL(logoFile);
+    setLogoPreviewUrl(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [clearLogo, draft.logo_url, logoFile]);
+
   function set<K extends keyof StoreDraft>(key: K, value: StoreDraft[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
   }
@@ -78,6 +114,24 @@ export function StoreForm({
       ...d,
       tags: d.tags.includes(tag) ? d.tags.filter((t) => t !== tag) : [...d.tags, tag],
     }));
+  }
+
+  function onLogoChange(file: File | undefined) {
+    setError(null);
+    if (!file) {
+      setLogoFile(null);
+      return;
+    }
+    if (!LOGO_TYPES.has(file.type)) {
+      setError("Logo must be a JPG, PNG, or WebP image.");
+      return;
+    }
+    if (file.size > MAX_LOGO_SIZE) {
+      setError("Logo must be 5 MB or smaller.");
+      return;
+    }
+    setClearLogo(false);
+    setLogoFile(file);
   }
 
   // Merged region → area picker. Areas grouped by region (from the areas table).
@@ -145,6 +199,7 @@ export function StoreForm({
       type: draft.type,
       description: draft.description.trim(),
       cuisine,
+      logo_url: clearLogo ? null : draft.logo_url,
       region: draft.region,
       area: orNull(draft.area ?? ""),
       address: orNull(draft.address ?? ""),
@@ -175,6 +230,39 @@ export function StoreForm({
         .single();
       if (error) return fail(error.message);
       storeId = data.id;
+    }
+
+    const previousLogoPath = storagePathFromPublicUrl(draft.logo_url);
+    if (logoFile) {
+      const logoPath = `stores/${storeId}/${crypto.randomUUID()}.${logoExtension(logoFile)}`;
+      const { error: uploadError } = await supabase.storage
+        .from(LOGO_BUCKET)
+        .upload(logoPath, logoFile, {
+          contentType: logoFile.type,
+          cacheControl: "31536000",
+        });
+      if (uploadError) return fail(uploadError.message);
+
+      const { data: publicUrlData } = supabase.storage
+        .from(LOGO_BUCKET)
+        .getPublicUrl(logoPath);
+      const { error: logoUpdateError } = await supabase
+        .from("stores")
+        .update({ logo_url: publicUrlData.publicUrl })
+        .eq("id", storeId!);
+      if (logoUpdateError) return fail(logoUpdateError.message);
+    }
+
+    if (clearLogo && !logoFile) {
+      const { error: logoUpdateError } = await supabase
+        .from("stores")
+        .update({ logo_url: null })
+        .eq("id", storeId!);
+      if (logoUpdateError) return fail(logoUpdateError.message);
+    }
+
+    if (previousLogoPath && (logoFile || clearLogo)) {
+      await supabase.storage.from(LOGO_BUCKET).remove([previousLogoPath]);
     }
 
     await supabase.from("store_tags").delete().eq("store_id", storeId!);
@@ -357,6 +445,44 @@ export function StoreForm({
             value={draft.description}
             onChange={(e) => set("description", e.target.value)}
           />
+        </div>
+
+        <div className="field">
+          <label htmlFor="logo">
+            Logo image <span className="hint">— optional; JPG, PNG, or WebP up to 5 MB</span>
+          </label>
+          <div className="logo-upload">
+            {logoPreviewUrl && (
+              <img className="logo-preview" src={logoPreviewUrl} alt="Logo preview" />
+            )}
+            <div>
+              <input
+                id="logo"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => onLogoChange(e.target.files?.[0])}
+              />
+              {logoFile && <p className="hint">Selected: {logoFile.name}</p>}
+              {draft.logo_url && !logoFile && !clearLogo && (
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => setClearLogo(true)}
+                >
+                  Remove current logo
+                </button>
+              )}
+              {clearLogo && !logoFile && (
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => setClearLogo(false)}
+                >
+                  Keep current logo
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {isApp ? (
