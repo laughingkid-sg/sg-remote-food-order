@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "../supabase";
 import {
   REGIONS,
@@ -17,6 +17,22 @@ import {
 function orNull(v: string): string | null {
   const t = v.trim();
   return t === "" ? null : t;
+}
+
+/** Lowercase, non-alphanumerics → single hyphens, trimmed. */
+function slugify(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/** Suggest a slug from the name, appending the area unless it's already there
+ *  (names often already include the branch, e.g. "Kopitiam Toast — Tampines"). */
+function suggestSlug(name: string, area: string | null): string {
+  const base = slugify(name);
+  const areaSlug = area ? slugify(area) : "";
+  return areaSlug && !base.includes(areaSlug) ? `${base}-${areaSlug}` : base;
 }
 
 /** Red asterisk marking a required field. */
@@ -41,6 +57,15 @@ export function StoreForm({
   );
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Once the user edits the slug (or when editing an existing store), stop
+  // auto-suggesting so we never rewrite a live URL.
+  const [slugEdited, setSlugEdited] = useState(editingId !== null);
+
+  // Auto-suggest the slug from name + area for new, untouched stores.
+  useEffect(() => {
+    if (slugEdited) return;
+    setDraft((d) => ({ ...d, slug: suggestSlug(d.name, d.area) }));
+  }, [draft.name, draft.area, slugEdited]);
 
   function set<K extends keyof StoreDraft>(key: K, value: StoreDraft[K]) {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -74,8 +99,33 @@ export function StoreForm({
     }
   }
 
+  /** Friendly client-side validation, mirroring the DB constraints. */
+  function validate(): string | null {
+    if (!draft.name.trim()) return "Name is required.";
+    const slug = draft.slug.trim();
+    if (!slug) return "Slug is required.";
+    if (!/^[a-z0-9-]+$/.test(slug))
+      return "Slug can only contain lowercase letters, numbers and hyphens.";
+    if (draft.type === "qr" && !(draft.order_url ?? "").trim())
+      return "An Order URL is required for order-link stores.";
+    if (
+      draft.type === "app" &&
+      !(draft.app_ios_url ?? "").trim() &&
+      !(draft.app_android_url ?? "").trim()
+    )
+      return "App stores need at least one download link (iOS or Android).";
+    return null;
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+
+    const problem = validate();
+    if (problem) {
+      setError(problem);
+      return;
+    }
+
     setError(null);
     setBusy(true);
 
@@ -198,13 +248,19 @@ export function StoreForm({
           </div>
           <div className="field">
             <label htmlFor="slug">
-              Slug <Req /> <span className="hint">— URL id, e.g. kopitiam-toast-tampines</span>
+              Slug <Req />{" "}
+              <span className="hint">
+                — {editingId ? "URL id" : "auto-suggested; edit to override"}
+              </span>
             </label>
             <input
               id="slug"
               type="text"
               value={draft.slug}
-              onChange={(e) => set("slug", e.target.value)}
+              onChange={(e) => {
+                setSlugEdited(true);
+                set("slug", e.target.value);
+              }}
               pattern="[a-z0-9-]+"
               required
             />
