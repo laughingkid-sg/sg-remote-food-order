@@ -82,7 +82,7 @@ export function SearchClient({ stores }: { stores: Store[] }) {
           <option value="all">All regions</option>
           {REGIONS.map((r) => (
             <optgroup key={r.slug} label={r.name}>
-              <option value={`r:${r.slug}`}>Whole {r.name}</option>
+              <option value={`r:${r.slug}`}>{r.name} (Others)</option>
               {(areasByRegion.get(r.slug) ?? []).map((a) => (
                 <option key={a} value={`a:${r.slug}|${a}`}>
                   {a}
