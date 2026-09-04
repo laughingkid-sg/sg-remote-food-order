@@ -109,6 +109,22 @@ textarea {
   resize: vertical;
 }
 
+.logo-upload {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.logo-preview {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+}
+
 .row {
   display: grid;
   grid-template-columns: 1fr 1fr;

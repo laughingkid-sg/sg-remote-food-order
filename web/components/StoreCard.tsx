@@ -10,7 +10,17 @@ export function StoreCard({ store }: { store: Store }) {
       href={`/store/${store.slug}`}
       className="block rounded-xl border border-black/10 bg-white p-4 transition hover:shadow-md dark:border-white/10 dark:bg-stone-900"
     >
-      <h3 className="mb-1.5 font-semibold leading-tight">{store.name}</h3>
+      <div className="mb-3 flex items-center gap-3">
+        {store.logoUrl && (
+          <img
+            src={store.logoUrl}
+            alt=""
+            aria-hidden="true"
+            className="h-12 w-12 rounded-lg border border-black/10 object-cover dark:border-white/10"
+          />
+        )}
+        <h3 className="font-semibold leading-tight">{store.name}</h3>
+      </div>
       <div className="mb-2.5 flex flex-wrap items-center gap-2">
         <TypePill type={store.type} />
         {store.cuisine && (
