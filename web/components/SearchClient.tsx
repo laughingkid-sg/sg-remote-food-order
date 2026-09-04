@@ -8,49 +8,52 @@ import { StoreCard } from "@/components/StoreCard";
 type TypeFilter = "all" | StoreType;
 
 /** Client-side search over the full store list. For this directory's scale the
- *  whole dataset ships to the browser and is filtered in memory — no server. */
+ *  whole dataset ships to the browser and is filtered in memory — no server.
+ *
+ *  Region is multi-select: tappable chips on mobile, a native multi-select on
+ *  desktop. Area is a single dependent dropdown scoped to the chosen regions. */
 export function SearchClient({ stores }: { stores: Store[] }) {
   const [query, setQuery] = useState("");
   const [type, setType] = useState<TypeFilter>("all");
-  const [region, setRegion] = useState<RegionSlug | "all">("all");
-  const [area, setArea] = useState<string | "all">("all");
+  const [regions, setRegions] = useState<RegionSlug[]>([]);
+  const [area, setArea] = useState<string>("all");
 
-  // Areas present in the data, grouped by region, for the merged location select.
-  const areasByRegion = useMemo(() => {
-    const map = new Map<RegionSlug, string[]>();
-    for (const s of stores) {
-      if (!s.area) continue;
-      const arr = map.get(s.region) ?? [];
-      if (!arr.includes(s.area)) arr.push(s.area);
-      map.set(s.region, arr);
-    }
-    for (const arr of map.values()) arr.sort((a, b) => a.localeCompare(b));
-    return map;
-  }, [stores]);
+  // Areas that exist within the selected regions (or across all, if none chosen).
+  const areaOptions = useMemo(() => {
+    const inScope =
+      regions.length === 0 ? stores : stores.filter((s) => regions.includes(s.region));
+    return Array.from(
+      new Set(inScope.map((s) => s.area).filter((a): a is string => Boolean(a))),
+    ).sort((a, b) => a.localeCompare(b));
+  }, [stores, regions]);
 
-  // A single value encodes the 2-layer selection: all / a whole region / an area.
-  const locationValue =
-    area !== "all" ? `a:${region}|${area}` : region !== "all" ? `r:${region}` : "all";
+  // Keep the area valid for the current region selection.
+  function clampAreaFor(nextRegions: RegionSlug[]) {
+    const inScope =
+      nextRegions.length === 0
+        ? stores
+        : stores.filter((s) => nextRegions.includes(s.region));
+    const areas = new Set(inScope.map((s) => s.area).filter(Boolean));
+    setArea((a) => (a !== "all" && !areas.has(a) ? "all" : a));
+  }
 
-  function onLocationChange(v: string) {
-    if (v.startsWith("a:")) {
-      const [r, name] = v.slice(2).split("|");
-      setRegion(r as RegionSlug);
-      setArea(name);
-    } else if (v.startsWith("r:")) {
-      setRegion(v.slice(2) as RegionSlug);
-      setArea("all");
-    } else {
-      setRegion("all");
-      setArea("all");
-    }
+  function toggleRegion(r: RegionSlug) {
+    const next = regions.includes(r) ? regions.filter((x) => x !== r) : [...regions, r];
+    setRegions(next);
+    clampAreaFor(next);
+  }
+
+  function onMultiSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const next = Array.from(e.target.selectedOptions, (o) => o.value as RegionSlug);
+    setRegions(next);
+    clampAreaFor(next);
   }
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     return stores.filter((s) => {
       if (type !== "all" && s.type !== type) return false;
-      if (region !== "all" && s.region !== region) return false;
+      if (regions.length > 0 && !regions.includes(s.region)) return false;
       if (area !== "all" && s.area !== area) return false;
       if (!q) return true;
       return (
@@ -61,7 +64,10 @@ export function SearchClient({ stores }: { stores: Store[] }) {
         (s.postalCode?.includes(q) ?? false)
       );
     });
-  }, [stores, query, type, region, area]);
+  }, [stores, query, type, regions, area]);
+
+  const controlClass =
+    "w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-base dark:border-white/15 dark:bg-stone-900";
 
   return (
     <div>
@@ -74,22 +80,72 @@ export function SearchClient({ stores }: { stores: Store[] }) {
           className="w-full rounded-lg border border-black/15 bg-white px-4 py-3 text-base outline-none focus:border-black/40 dark:border-white/15 dark:bg-stone-900"
           aria-label="Search stores"
         />
+
+        {/* Region — chips on mobile, native multi-select on desktop. */}
+        <div>
+          <div className="mb-1 text-xs font-medium text-stone-500">
+            Regions {regions.length > 0 && `(${regions.length})`}
+          </div>
+          <div className="flex flex-wrap gap-2 sm:hidden" role="group" aria-label="Filter by region">
+            {REGIONS.map((r) => {
+              const on = regions.includes(r.slug);
+              return (
+                <button
+                  key={r.slug}
+                  onClick={() => toggleRegion(r.slug)}
+                  aria-pressed={on}
+                  className={
+                    "rounded-full px-3 py-1.5 text-sm font-medium transition " +
+                    (on
+                      ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
+                      : "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300")
+                  }
+                >
+                  {r.name}
+                </button>
+              );
+            })}
+          </div>
+          <select
+            multiple
+            size={REGIONS.length}
+            value={regions}
+            onChange={onMultiSelect}
+            className={"hidden sm:block " + controlClass}
+            aria-label="Filter by region (select multiple)"
+          >
+            {REGIONS.map((r) => (
+              <option key={r.slug} value={r.slug} className="px-1 py-0.5">
+                {r.name}
+              </option>
+            ))}
+          </select>
+          {regions.length > 0 && (
+            <button
+              onClick={() => {
+                setRegions([]);
+                setArea("all");
+              }}
+              className="mt-1 text-xs text-stone-500 hover:underline"
+            >
+              Clear regions
+            </button>
+          )}
+        </div>
+
+        {/* Area — single dependent dropdown scoped to the selected regions. */}
         <select
-          value={locationValue}
-          onChange={(e) => onLocationChange(e.target.value)}
-          className="w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-base dark:border-white/15 dark:bg-stone-900"
-          aria-label="Filter by region and area"
+          value={area}
+          onChange={(e) => setArea(e.target.value)}
+          className={controlClass + (areaOptions.length === 0 ? " opacity-50" : "")}
+          aria-label="Filter by area"
+          disabled={areaOptions.length === 0}
         >
-          <option value="all">All regions</option>
-          {REGIONS.map((r) => (
-            <optgroup key={r.slug} label={r.name}>
-              <option value={`r:${r.slug}`}>{r.name} (Others)</option>
-              {(areasByRegion.get(r.slug) ?? []).map((a) => (
-                <option key={a} value={`a:${r.slug}|${a}`}>
-                  {a}
-                </option>
-              ))}
-            </optgroup>
+          <option value="all">{areaOptions.length === 0 ? "No areas" : "All areas"}</option>
+          {areaOptions.map((a) => (
+            <option key={a} value={a}>
+              {a}
+            </option>
           ))}
         </select>
       </div>
