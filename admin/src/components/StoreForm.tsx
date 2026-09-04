@@ -4,6 +4,7 @@ import {
   REGIONS,
   SERVICE_TAGS,
   emptyDraft,
+  type Cuisine,
   type ServiceTag,
   type StoreDraft,
   type StoreRecord,
@@ -18,9 +19,13 @@ function orNull(v: string): string | null {
 
 export function StoreForm({
   initial,
+  cuisines,
+  knownAreas,
   onDone,
 }: {
   initial: StoreRecord | null;
+  cuisines: Cuisine[];
+  knownAreas: string[];
   onDone: () => void;
 }) {
   const editingId = initial?.id ?? null;
@@ -46,19 +51,29 @@ export function StoreForm({
     setError(null);
     setBusy(true);
 
+    const cuisine = draft.cuisine.trim();
     const row = {
       slug: draft.slug.trim(),
       name: draft.name.trim(),
       type: draft.type,
       description: draft.description.trim(),
-      cuisine: draft.cuisine.trim(),
+      cuisine,
       region: draft.region,
+      area: orNull(draft.area ?? ""),
       address: orNull(draft.address ?? ""),
       order_url: draft.type === "qr" ? orNull(draft.order_url ?? "") : null,
       app_ios_url: draft.type === "app" ? orNull(draft.app_ios_url ?? "") : null,
       app_android_url: draft.type === "app" ? orNull(draft.app_android_url ?? "") : null,
       featured: draft.featured,
     };
+
+    // Persist a brand-new cuisine into the vocabulary so it becomes a default.
+    const isNewCuisine =
+      cuisine !== "" &&
+      !cuisines.some((c) => c.name.toLowerCase() === cuisine.toLowerCase());
+    if (isNewCuisine) {
+      await supabase.from("cuisines").insert({ name: cuisine });
+    }
 
     // Upsert the store, then replace its tags.
     let storeId = editingId;
@@ -75,7 +90,6 @@ export function StoreForm({
       storeId = data.id;
     }
 
-    // Replace tags: clear then insert the current selection.
     await supabase.from("store_tags").delete().eq("store_id", storeId!);
     if (draft.tags.length > 0) {
       const { error } = await supabase
@@ -110,7 +124,7 @@ export function StoreForm({
               value={draft.type}
               onChange={(e) => set("type", e.target.value as StoreType)}
             >
-              <option value="qr">Scan QR (per branch)</option>
+              <option value="qr">Order Link (per branch)</option>
               <option value="app">App (download links)</option>
             </select>
           </div>
@@ -158,25 +172,53 @@ export function StoreForm({
 
         <div className="row">
           <div className="field">
-            <label htmlFor="cuisine">Cuisine</label>
+            <label htmlFor="cuisine">
+              Cuisine <span className="hint">— pick one or type a new one</span>
+            </label>
             <input
               id="cuisine"
               type="text"
+              list="cuisine-list"
               value={draft.cuisine}
               onChange={(e) => set("cuisine", e.target.value)}
+              placeholder="e.g. Local, Japanese…"
             />
+            <datalist id="cuisine-list">
+              {cuisines.map((c) => (
+                <option key={c.id} value={c.name} />
+              ))}
+            </datalist>
           </div>
           <div className="field">
-            <label htmlFor="address">
-              Address <span className="hint">— usually only for QR stores</span>
+            <label htmlFor="area">
+              Area <span className="hint">— sub-location, e.g. Tampines</span>
             </label>
             <input
-              id="address"
+              id="area"
               type="text"
-              value={draft.address ?? ""}
-              onChange={(e) => set("address", e.target.value)}
+              list="area-list"
+              value={draft.area ?? ""}
+              onChange={(e) => set("area", e.target.value)}
+              placeholder="e.g. Orchard"
             />
+            <datalist id="area-list">
+              {knownAreas.map((a) => (
+                <option key={a} value={a} />
+              ))}
+            </datalist>
           </div>
+        </div>
+
+        <div className="field">
+          <label htmlFor="address">
+            Address <span className="hint">— usually only for order-link stores</span>
+          </label>
+          <input
+            id="address"
+            type="text"
+            value={draft.address ?? ""}
+            onChange={(e) => set("address", e.target.value)}
+          />
         </div>
 
         <div className="field">

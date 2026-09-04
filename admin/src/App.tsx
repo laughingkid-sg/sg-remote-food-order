@@ -4,7 +4,7 @@ import { supabase } from "./supabase";
 import { Login } from "./components/Login";
 import { StoreForm } from "./components/StoreForm";
 import { StoreList } from "./components/StoreList";
-import type { ServiceTag, StoreRecord } from "./types";
+import type { Cuisine, ServiceTag, StoreRecord } from "./types";
 
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -30,31 +30,41 @@ export function App() {
 
 function Dashboard({ email }: { email: string }) {
   const [stores, setStores] = useState<StoreRecord[]>([]);
+  const [cuisines, setCuisines] = useState<Cuisine[]>([]);
   const [editing, setEditing] = useState<StoreRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setError(null);
-    const { data, error } = await supabase
-      .from("stores")
-      .select(
-        "id, slug, name, type, description, cuisine, region, address, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
-      )
-      .order("name");
+    const [storesRes, cuisinesRes] = await Promise.all([
+      supabase
+        .from("stores")
+        .select(
+          "id, slug, name, type, description, cuisine, region, area, address, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
+        )
+        .order("name"),
+      supabase.from("cuisines").select("id, name").order("name"),
+    ]);
     setLoading(false);
-    if (error) {
-      setError(error.message);
+    if (storesRes.error) {
+      setError(storesRes.error.message);
       return;
     }
-    const rows: StoreRecord[] = (data ?? []).map((r) => {
+    const rows: StoreRecord[] = (storesRes.data ?? []).map((r) => {
       const { store_tags, ...rest } = r as typeof r & {
         store_tags: { tag: ServiceTag }[] | null;
       };
       return { ...rest, tags: (store_tags ?? []).map((t) => t.tag) } as StoreRecord;
     });
     setStores(rows);
+    if (!cuisinesRes.error) setCuisines((cuisinesRes.data ?? []) as Cuisine[]);
   }, []);
+
+  // Distinct existing areas, for the form's datalist suggestions.
+  const knownAreas = Array.from(
+    new Set(stores.map((s) => s.area).filter((a): a is string => Boolean(a))),
+  ).sort((a, b) => a.localeCompare(b));
 
   useEffect(() => {
     void load();
@@ -77,7 +87,13 @@ function Dashboard({ email }: { email: string }) {
         </div>
       </div>
 
-      <StoreForm key={editing?.id ?? "new"} initial={editing} onDone={onDone} />
+      <StoreForm
+        key={editing?.id ?? "new"}
+        initial={editing}
+        cuisines={cuisines}
+        knownAreas={knownAreas}
+        onDone={onDone}
+      />
 
       <h2>Stores {stores.length > 0 && `(${stores.length})`}</h2>
       {error && <div className="msg error">{error}</div>}

@@ -81,11 +81,13 @@ input[type="url"],
 textarea,
 select {
   width: 100%;
-  padding: 9px 11px;
+  padding: 10px 11px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
-  font: inherit;
+  /* 16px avoids iOS Safari zooming the viewport on focus. */
+  font-size: 16px;
+  font-family: inherit;
   color: inherit;
 }
 
@@ -105,6 +107,24 @@ textarea {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
+}
+
+/* Stack paired fields on narrow screens. */
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .topbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  button {
+    padding: 11px 16px;
+  }
+  .store-item {
+    flex-wrap: wrap;
+  }
 }
 
 .checkboxes {

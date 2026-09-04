@@ -40,10 +40,11 @@ export function StoreList({
           <div>
             <strong>{store.name}</strong>
             <span className={`badge ${store.type}`}>
-              {store.type === "app" ? "App" : "Scan QR"}
+              {store.type === "app" ? "App" : "Order Link"}
             </span>
             <div className="hint">
-              {store.region} · {store.cuisine || "—"}
+              {store.area ? `${store.area}, ${store.region}` : store.region} ·{" "}
+              {store.cuisine || "—"}
               {store.tags.length > 0 && ` · ${store.tags.join(", ")}`}
             </div>
           </div>
