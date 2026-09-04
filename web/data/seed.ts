@@ -4,10 +4,10 @@ import type { Store } from "@/lib/types";
  *
  *  This is the fallback dataset used when Supabase is not configured (e.g. local
  *  dev before the project exists). Once Supabase is wired up, the same rows live
- *  in the DB (see supabase/seed.sql) and are read at build time instead.
+ *  in the DB (see supabase/migrations) and are read at build time instead.
  *
- *  App stores: one entry, download links, usually no address.
- *  QR stores:  one entry per branch, with address + order link. */
+ *  App stores: one entry, download links, usually no address/area.
+ *  QR stores:  one entry per branch, with address + area + order link. */
 export const SEED_STORES: Store[] = [
   // ---- App stores ---------------------------------------------------------
   {
@@ -18,6 +18,7 @@ export const SEED_STORES: Store[] = [
     cuisine: "Fast Food",
     logoUrl: null,
     region: "central",
+    area: null,
     address: null,
     tags: ["takeaway", "delivery", "dine-in"],
     orderUrl: null,
@@ -33,6 +34,7 @@ export const SEED_STORES: Store[] = [
     cuisine: "Fast Food",
     logoUrl: null,
     region: "central",
+    area: null,
     address: null,
     tags: ["takeaway", "delivery"],
     orderUrl: null,
@@ -48,6 +50,7 @@ export const SEED_STORES: Store[] = [
     cuisine: "Coffee",
     logoUrl: null,
     region: "central",
+    area: null,
     address: null,
     tags: ["takeaway", "dine-in"],
     orderUrl: null,
@@ -63,6 +66,7 @@ export const SEED_STORES: Store[] = [
     cuisine: "Fast Food",
     logoUrl: null,
     region: "north-east",
+    area: null,
     address: null,
     tags: ["takeaway", "delivery"],
     orderUrl: null,
@@ -71,15 +75,16 @@ export const SEED_STORES: Store[] = [
     featured: false,
   },
 
-  // ---- QR / scan-to-order stores (one entry per branch) -------------------
+  // ---- QR / order-link stores (one entry per branch) ----------------------
   {
     slug: "kopitiam-toast-tampines",
     name: "Kopitiam Toast — Tampines",
     type: "qr",
-    description: "Traditional kaya toast, soft-boiled eggs and kopi. Scan to order.",
+    description: "Traditional kaya toast, soft-boiled eggs and kopi. Order ahead.",
     cuisine: "Local Breakfast",
     logoUrl: null,
     region: "east",
+    area: "Tampines",
     address: "Tampines Mall, 4 Tampines Central 5, #B1-12, Singapore 529510",
     tags: ["takeaway", "dine-in"],
     orderUrl: "https://order.example.com/kopitiam-toast/tampines",
@@ -91,10 +96,11 @@ export const SEED_STORES: Store[] = [
     slug: "kopitiam-toast-jurong",
     name: "Kopitiam Toast — Jurong",
     type: "qr",
-    description: "Traditional kaya toast, soft-boiled eggs and kopi. Scan to order.",
+    description: "Traditional kaya toast, soft-boiled eggs and kopi. Order ahead.",
     cuisine: "Local Breakfast",
     logoUrl: null,
     region: "west",
+    area: "Jurong East",
     address: "JEM, 50 Jurong Gateway Rd, #02-20, Singapore 608549",
     tags: ["takeaway", "dine-in"],
     orderUrl: "https://order.example.com/kopitiam-toast/jurong",
@@ -106,10 +112,11 @@ export const SEED_STORES: Store[] = [
     slug: "bubble-tea-co-orchard",
     name: "Bubble Tea Co — Orchard",
     type: "qr",
-    description: "Handcrafted milk teas and fruit teas. Order at the counter QR.",
+    description: "Handcrafted milk teas and fruit teas. Order at the counter.",
     cuisine: "Bubble Tea",
     logoUrl: null,
     region: "central",
+    area: "Orchard",
     address: "ION Orchard, 2 Orchard Turn, #B4-15, Singapore 238801",
     tags: ["takeaway"],
     orderUrl: "https://order.example.com/bubble-tea-co/orchard",
@@ -125,6 +132,7 @@ export const SEED_STORES: Store[] = [
     cuisine: "Malay",
     logoUrl: null,
     region: "north",
+    area: "Woodlands",
     address: "Causeway Point, 1 Woodlands Square, #05-08, Singapore 738099",
     tags: ["takeaway", "dine-in"],
     orderUrl: "https://order.example.com/nasi-lemak-house/woodlands",
@@ -136,10 +144,11 @@ export const SEED_STORES: Store[] = [
     slug: "hainan-chicken-rice-amk",
     name: "Hainan Chicken Rice — Ang Mo Kio",
     type: "qr",
-    description: "Steamed and roasted chicken rice plates. Scan to skip the line.",
+    description: "Steamed and roasted chicken rice plates. Order to skip the line.",
     cuisine: "Local",
     logoUrl: null,
     region: "north-east",
+    area: "Ang Mo Kio",
     address: "AMK Hub, 53 Ang Mo Kio Ave 3, #B2-05, Singapore 569933",
     tags: ["takeaway", "dine-in"],
     orderUrl: "https://order.example.com/hainan-chicken-rice/amk",
@@ -155,6 +164,7 @@ export const SEED_STORES: Store[] = [
     cuisine: "Indian",
     logoUrl: null,
     region: "east",
+    area: "Bedok",
     address: "Bedok Mall, 311 New Upper Changi Rd, #B2-30, Singapore 467360",
     tags: ["takeaway", "dine-in", "delivery"],
     orderUrl: "https://order.example.com/prata-corner/bedok",

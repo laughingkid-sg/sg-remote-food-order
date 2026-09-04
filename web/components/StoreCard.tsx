@@ -17,7 +17,9 @@ export function StoreCard({ store }: { store: Store }) {
       <p className="mb-3 text-sm text-stone-600 dark:text-stone-400">{store.cuisine}</p>
       <div className="flex flex-wrap items-center gap-1.5">
         {region && (
-          <span className="text-xs text-stone-500 dark:text-stone-500">{region.name}</span>
+          <span className="text-xs text-stone-500 dark:text-stone-500">
+            {store.area ? `${store.area}, ${region.name}` : region.name}
+          </span>
         )}
         <span className="text-stone-300 dark:text-stone-600">·</span>
         {store.tags.map((tag) => (

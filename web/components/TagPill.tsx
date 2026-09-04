@@ -32,7 +32,7 @@ export function TypePill({ type }: { type: StoreType }) {
           : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300")
       }
     >
-      {isApp ? "App" : "Scan QR"}
+      {isApp ? "App" : "Order Link"}
     </span>
   );
 }

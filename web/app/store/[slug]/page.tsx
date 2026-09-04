@@ -68,12 +68,12 @@ export default async function StorePage({
         <div className="mb-2 flex items-center gap-2">
           <TypePill type={store.type} />
           {region && (
-            <Link
-              href={`/region/${region.slug}`}
-              className="text-sm text-stone-500 hover:underline"
-            >
-              {region.name}
-            </Link>
+            <span className="text-sm text-stone-500">
+              {store.area && <span>{store.area}, </span>}
+              <Link href={`/region/${region.slug}`} className="hover:underline">
+                {region.name}
+              </Link>
+            </span>
           )}
         </div>
         <h1 className="text-3xl font-bold tracking-tight">{store.name}</h1>

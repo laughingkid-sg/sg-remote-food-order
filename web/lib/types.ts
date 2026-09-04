@@ -25,6 +25,9 @@ export interface Store {
   cuisine: string;
   logoUrl: string | null;
   region: RegionSlug;
+  /** Sub-location within the region (e.g. "Tampines") for layer-2 filtering.
+   *  Set for QR stores; usually null for brand-wide app stores. */
+  area: string | null;
   /** Human-readable address. Present for QR stores; usually null for app stores. */
   address: string | null;
   /** Service tags such as takeaway / delivery. */
@@ -47,6 +50,7 @@ export interface SearchDoc {
   type: StoreType;
   cuisine: string;
   region: RegionSlug;
+  area: string | null;
   tags: ServiceTag[];
   address: string | null;
 }

@@ -13,6 +13,7 @@ interface StoreRow {
   cuisine: string;
   logo_url: string | null;
   region: RegionSlug;
+  area: string | null;
   address: string | null;
   order_url: string | null;
   app_ios_url: string | null;
@@ -30,6 +31,7 @@ function rowToStore(row: StoreRow): Store {
     cuisine: row.cuisine,
     logoUrl: row.logo_url,
     region: row.region,
+    area: row.area,
     address: row.address,
     tags: (row.store_tags ?? []).map((t) => t.tag),
     orderUrl: row.order_url,
@@ -51,7 +53,7 @@ export const getStores = cache(async (): Promise<Store[]> => {
   const { data, error } = await supabase
     .from("stores")
     .select(
-      "slug, name, type, description, cuisine, logo_url, region, address, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
+      "slug, name, type, description, cuisine, logo_url, region, area, address, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
     )
     .order("name");
 
@@ -85,12 +87,13 @@ export async function getFeaturedStores(): Promise<Store[]> {
 /** Minimal payload for client-side search. */
 export async function getSearchDocs(): Promise<SearchDoc[]> {
   const stores = await getStores();
-  return stores.map(({ slug, name, type, cuisine, region, tags, address }) => ({
+  return stores.map(({ slug, name, type, cuisine, region, area, tags, address }) => ({
     slug,
     name,
     type,
     cuisine,
     region,
+    area,
     tags,
     address,
   }));
