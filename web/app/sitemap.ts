@@ -3,6 +3,9 @@ import { getStores } from "@/lib/data";
 import { REGIONS } from "@/data/regions";
 import { SITE } from "@/lib/site";
 
+// Emit a static sitemap.xml at build time (required for `output: export`).
+export const dynamic = "force-static";
+
 const TAGS = ["takeaway", "delivery", "dine-in"];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
