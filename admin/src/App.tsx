@@ -4,7 +4,7 @@ import { supabase } from "./supabase";
 import { Login } from "./components/Login";
 import { StoreForm } from "./components/StoreForm";
 import { StoreList } from "./components/StoreList";
-import type { Cuisine, ServiceTag, StoreRecord } from "./types";
+import type { Area, Cuisine, ServiceTag, StoreRecord } from "./types";
 
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -31,13 +31,14 @@ export function App() {
 function Dashboard({ email }: { email: string }) {
   const [stores, setStores] = useState<StoreRecord[]>([]);
   const [cuisines, setCuisines] = useState<Cuisine[]>([]);
+  const [areas, setAreas] = useState<Area[]>([]);
   const [editing, setEditing] = useState<StoreRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setError(null);
-    const [storesRes, cuisinesRes] = await Promise.all([
+    const [storesRes, cuisinesRes, areasRes] = await Promise.all([
       supabase
         .from("stores")
         .select(
@@ -45,6 +46,7 @@ function Dashboard({ email }: { email: string }) {
         )
         .order("name"),
       supabase.from("cuisines").select("id, name").order("name"),
+      supabase.from("areas").select("id, name, region").order("name"),
     ]);
     setLoading(false);
     if (storesRes.error) {
@@ -59,12 +61,8 @@ function Dashboard({ email }: { email: string }) {
     });
     setStores(rows);
     if (!cuisinesRes.error) setCuisines((cuisinesRes.data ?? []) as Cuisine[]);
+    if (!areasRes.error) setAreas((areasRes.data ?? []) as Area[]);
   }, []);
-
-  // Distinct existing areas, for the form's datalist suggestions.
-  const knownAreas = Array.from(
-    new Set(stores.map((s) => s.area).filter((a): a is string => Boolean(a))),
-  ).sort((a, b) => a.localeCompare(b));
 
   useEffect(() => {
     void load();
@@ -91,7 +89,7 @@ function Dashboard({ email }: { email: string }) {
         key={editing?.id ?? "new"}
         initial={editing}
         cuisines={cuisines}
-        knownAreas={knownAreas}
+        areas={areas}
         onDone={onDone}
       />
 

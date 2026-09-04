@@ -21,6 +21,13 @@ export interface Cuisine {
   name: string;
 }
 
+/** A row from the `areas` vocabulary table (a sub-location within a region). */
+export interface Area {
+  id: number;
+  name: string;
+  region: RegionSlug;
+}
+
 /** A store row plus its tags, as used by the admin forms. */
 export interface StoreRecord {
   id: number;

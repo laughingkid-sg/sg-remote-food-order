@@ -4,7 +4,9 @@ import {
   REGIONS,
   SERVICE_TAGS,
   emptyDraft,
+  type Area,
   type Cuisine,
+  type RegionSlug,
   type ServiceTag,
   type StoreDraft,
   type StoreRecord,
@@ -20,12 +22,12 @@ function orNull(v: string): string | null {
 export function StoreForm({
   initial,
   cuisines,
-  knownAreas,
+  areas,
   onDone,
 }: {
   initial: StoreRecord | null;
   cuisines: Cuisine[];
-  knownAreas: string[];
+  areas: Area[];
   onDone: () => void;
 }) {
   const editingId = initial?.id ?? null;
@@ -44,6 +46,16 @@ export function StoreForm({
       ...d,
       tags: d.tags.includes(tag) ? d.tags.filter((t) => t !== tag) : [...d.tags, tag],
     }));
+  }
+
+  // Areas valid for the selected region (the area select cascades from region).
+  const regionAreas = areas.filter((a) => a.region === draft.region);
+
+  function onRegionChange(next: RegionSlug) {
+    setDraft((d) => {
+      const stillValid = areas.some((a) => a.region === next && a.name === d.area);
+      return { ...d, region: next, area: stillValid ? d.area : "" };
+    });
   }
 
   async function onSubmit(e: FormEvent) {
@@ -133,7 +145,7 @@ export function StoreForm({
             <select
               id="region"
               value={draft.region}
-              onChange={(e) => set("region", e.target.value as StoreDraft["region"])}
+              onChange={(e) => onRegionChange(e.target.value as RegionSlug)}
             >
               {REGIONS.map((r) => (
                 <option key={r.slug} value={r.slug}>
@@ -191,21 +203,20 @@ export function StoreForm({
           </div>
           <div className="field">
             <label htmlFor="area">
-              Area <span className="hint">— sub-location, e.g. Tampines</span>
+              Area <span className="hint">— sub-location within the region</span>
             </label>
-            <input
+            <select
               id="area"
-              type="text"
-              list="area-list"
               value={draft.area ?? ""}
               onChange={(e) => set("area", e.target.value)}
-              placeholder="e.g. Orchard"
-            />
-            <datalist id="area-list">
-              {knownAreas.map((a) => (
-                <option key={a} value={a} />
+            >
+              <option value="">— none —</option>
+              {regionAreas.map((a) => (
+                <option key={a.id} value={a.name}>
+                  {a.name}
+                </option>
               ))}
-            </datalist>
+            </select>
           </div>
         </div>
 
