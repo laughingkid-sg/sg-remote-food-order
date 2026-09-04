@@ -92,7 +92,9 @@ export default async function StorePage({
             <img
               src={store.logoUrl}
               alt={`${store.name} logo`}
-              className="h-16 w-16 rounded-xl border border-black/10 object-cover dark:border-white/10"
+              width={64}
+              height={64}
+              className="h-16 w-16 rounded-xl border border-black/10 bg-white object-contain dark:border-white/10"
             />
           )}
           <h1 className="text-3xl font-bold tracking-tight">{store.name}</h1>

@@ -16,7 +16,9 @@ export function StoreCard({ store }: { store: Store }) {
             src={store.logoUrl}
             alt=""
             aria-hidden="true"
-            className="h-12 w-12 rounded-lg border border-black/10 object-cover dark:border-white/10"
+            width={48}
+            height={48}
+            className="h-12 w-12 rounded-lg border border-black/10 bg-white object-contain dark:border-white/10"
           />
         )}
         <h3 className="font-semibold leading-tight">{store.name}</h3>
