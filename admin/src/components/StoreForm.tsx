@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "../supabase";
 import { Combobox } from "./Combobox";
+import { SelectMenu } from "./SelectMenu";
 import {
   REGIONS,
   SERVICE_TAGS,
@@ -203,35 +204,42 @@ export function StoreForm({
             <label htmlFor="type">
               Type <Req />
             </label>
-            <select
+            <SelectMenu
               id="type"
               value={draft.type}
-              onChange={(e) => set("type", e.target.value as StoreType)}
-            >
-              <option value="qr">Order Link (per branch)</option>
-              <option value="app">App (download links)</option>
-            </select>
+              onChange={(v) => set("type", v as StoreType)}
+              ariaLabel="Type"
+              groups={[
+                {
+                  label: null,
+                  options: [
+                    { value: "qr", label: "Order Link (per branch)" },
+                    { value: "app", label: "App (download links)" },
+                  ],
+                },
+              ]}
+            />
           </div>
           <div className="field">
             <label htmlFor="location">
               Location <Req /> <span className="hint">— region › area</span>
             </label>
-            <select
+            <SelectMenu
               id="location"
               value={locationValue}
-              onChange={(e) => onLocationChange(e.target.value)}
-            >
-              {REGIONS.map((r) => (
-                <optgroup key={r.slug} label={r.name}>
-                  <option value={`r:${r.slug}`}>{r.name} (Others)</option>
-                  {(areasByRegion.get(r.slug) ?? []).map((a) => (
-                    <option key={a.id} value={`a:${r.slug}|${a.name}`}>
-                      {a.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
+              onChange={onLocationChange}
+              ariaLabel="Location"
+              groups={REGIONS.map((r) => ({
+                label: r.name,
+                options: [
+                  { value: `r:${r.slug}`, label: `${r.name} (Others)` },
+                  ...(areasByRegion.get(r.slug) ?? []).map((a) => ({
+                    value: `a:${r.slug}|${a.name}`,
+                    label: a.name,
+                  })),
+                ],
+              }))}
+            />
           </div>
         </div>
 

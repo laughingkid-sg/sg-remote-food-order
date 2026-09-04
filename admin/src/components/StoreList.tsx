@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
+import { SelectMenu } from "./SelectMenu";
 import type { StoreRecord, StoreType } from "../types";
 
 const PAGE_SIZE = 10;
@@ -73,15 +74,21 @@ export function StoreList({
           />
         </div>
         <div className="field" style={{ marginBottom: 0 }}>
-          <select
+          <SelectMenu
             value={typeFilter}
-            onChange={(e) => onFilter(setTypeFilter)(e.target.value as TypeFilter)}
-            aria-label="Filter by type"
-          >
-            <option value="all">All types</option>
-            <option value="qr">Order Link</option>
-            <option value="app">App</option>
-          </select>
+            onChange={(v) => onFilter(setTypeFilter)(v as TypeFilter)}
+            ariaLabel="Filter by type"
+            groups={[
+              {
+                label: null,
+                options: [
+                  { value: "all", label: "All types" },
+                  { value: "qr", label: "Order Link" },
+                  { value: "app", label: "App" },
+                ],
+              },
+            ]}
+          />
         </div>
       </div>
 
