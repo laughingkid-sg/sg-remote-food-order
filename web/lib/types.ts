@@ -31,8 +31,10 @@ export interface Store {
   area: string | null;
   /** Human-readable address. Present for QR stores; usually null for app stores. */
   address: string | null;
-  /** Singapore postal code (6 digits). Useful for search + Google Maps lookup. */
+  /** Singapore postal code (6 digits). Useful for search and display. */
   postalCode: string | null;
+  /** Canonical Google Maps link for the store’s exact map pin. */
+  googleMapsUrl: string | null;
   /** Service tags such as takeaway / delivery. */
   tags: ServiceTag[];
 

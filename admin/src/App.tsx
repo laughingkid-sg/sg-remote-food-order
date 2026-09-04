@@ -47,7 +47,7 @@ function Dashboard({ email }: { email: string }) {
       supabase
         .from("stores")
         .select(
-          "id, slug, name, type, description, cuisine, logo_url, region, area, address, postal_code, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
+          "id, slug, name, type, description, cuisine, logo_url, region, area, address, postal_code, google_maps_url, order_url, app_ios_url, app_android_url, featured, store_tags(tag)",
         )
         .order("name"),
       supabase.from("cuisines").select("id, name").order("name"),
