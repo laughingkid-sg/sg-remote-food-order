@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { supabase } from "../supabase";
 import { SelectMenu } from "./SelectMenu";
-import type { StoreRecord, StoreType } from "../types";
+import { REGIONS, type StoreRecord, type StoreType } from "../types";
+
+const REGION_NAME = new Map(REGIONS.map((r) => [r.slug, r.name]));
 
 const PAGE_SIZE = 10;
 type TypeFilter = "all" | StoreType;
@@ -110,9 +112,11 @@ export function StoreList({
                 {store.type === "app" ? "App" : "Order Link"}
               </span>
               <div className="hint">
-                {store.area
-                  ? `${store.area}, ${store.region}`
-                  : (store.region ?? "Nationwide")}{" "}
+                {store.region
+                  ? store.area
+                    ? `${store.area}, ${REGION_NAME.get(store.region)}`
+                    : REGION_NAME.get(store.region)
+                  : "Nationwide"}{" "}
                 · {store.cuisine || "—"}
                 {store.tags.length > 0 && ` · ${store.tags.join(", ")}`}
               </div>

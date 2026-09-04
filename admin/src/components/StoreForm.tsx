@@ -250,10 +250,15 @@ export function StoreForm({
               onChange={onLocationChange}
               ariaLabel="Location"
               groups={[
-                {
-                  label: null,
-                  options: [{ value: "none", label: "Nationwide (no region)" }],
-                },
+                // Nationwide is only valid for brand-wide app stores.
+                ...(draft.type === "app"
+                  ? [
+                      {
+                        label: null,
+                        options: [{ value: "none", label: "Nationwide (no region)" }],
+                      },
+                    ]
+                  : []),
                 ...REGIONS.map((r) => ({
                   label: r.name,
                   options: [
