@@ -15,17 +15,35 @@ export function SearchClient({ stores }: { stores: Store[] }) {
   const [region, setRegion] = useState<RegionSlug | "all">("all");
   const [area, setArea] = useState<string | "all">("all");
 
-  // Layer-2 areas available within the chosen region (or across all regions).
-  const areas = useMemo(() => {
-    const inScope = region === "all" ? stores : stores.filter((s) => s.region === region);
-    return Array.from(
-      new Set(inScope.map((s) => s.area).filter((a): a is string => Boolean(a))),
-    ).sort((a, b) => a.localeCompare(b));
-  }, [stores, region]);
+  // Areas present in the data, grouped by region, for the merged location select.
+  const areasByRegion = useMemo(() => {
+    const map = new Map<RegionSlug, string[]>();
+    for (const s of stores) {
+      if (!s.area) continue;
+      const arr = map.get(s.region) ?? [];
+      if (!arr.includes(s.area)) arr.push(s.area);
+      map.set(s.region, arr);
+    }
+    for (const arr of map.values()) arr.sort((a, b) => a.localeCompare(b));
+    return map;
+  }, [stores]);
 
-  function onRegionChange(next: RegionSlug | "all") {
-    setRegion(next);
-    setArea("all"); // reset the dependent filter
+  // A single value encodes the 2-layer selection: all / a whole region / an area.
+  const locationValue =
+    area !== "all" ? `a:${region}|${area}` : region !== "all" ? `r:${region}` : "all";
+
+  function onLocationChange(v: string) {
+    if (v.startsWith("a:")) {
+      const [r, name] = v.slice(2).split("|");
+      setRegion(r as RegionSlug);
+      setArea(name);
+    } else if (v.startsWith("r:")) {
+      setRegion(v.slice(2) as RegionSlug);
+      setArea("all");
+    } else {
+      setRegion("all");
+      setArea("all");
+    }
   }
 
   const results = useMemo(() => {
@@ -44,9 +62,6 @@ export function SearchClient({ stores }: { stores: Store[] }) {
     });
   }, [stores, query, type, region, area]);
 
-  const selectClass =
-    "w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-base dark:border-white/15 dark:bg-stone-900";
-
   return (
     <div>
       <div className="mb-4 space-y-3">
@@ -58,35 +73,24 @@ export function SearchClient({ stores }: { stores: Store[] }) {
           className="w-full rounded-lg border border-black/15 bg-white px-4 py-3 text-base outline-none focus:border-black/40 dark:border-white/15 dark:bg-stone-900"
           aria-label="Search stores"
         />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <select
-            value={region}
-            onChange={(e) => onRegionChange(e.target.value as RegionSlug | "all")}
-            className={selectClass}
-            aria-label="Filter by region"
-          >
-            <option value="all">All regions</option>
-            {REGIONS.map((r) => (
-              <option key={r.slug} value={r.slug}>
-                {r.name}
-              </option>
-            ))}
-          </select>
-          <select
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            className={selectClass + (areas.length === 0 ? " opacity-50" : "")}
-            aria-label="Filter by area"
-            disabled={areas.length === 0}
-          >
-            <option value="all">{areas.length === 0 ? "No areas" : "All areas"}</option>
-            {areas.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={locationValue}
+          onChange={(e) => onLocationChange(e.target.value)}
+          className="w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-base dark:border-white/15 dark:bg-stone-900"
+          aria-label="Filter by region and area"
+        >
+          <option value="all">All regions</option>
+          {REGIONS.map((r) => (
+            <optgroup key={r.slug} label={r.name}>
+              <option value={`r:${r.slug}`}>Whole {r.name}</option>
+              {(areasByRegion.get(r.slug) ?? []).map((a) => (
+                <option key={a} value={`a:${r.slug}|${a}`}>
+                  {a}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
       </div>
 
       <div
