@@ -19,6 +19,11 @@ function orNull(v: string): string | null {
   return t === "" ? null : t;
 }
 
+/** Red asterisk marking a required field. */
+function Req() {
+  return <span className="req"> *</span>;
+}
+
 export function StoreForm({
   initial,
   cuisines,
@@ -48,14 +53,25 @@ export function StoreForm({
     }));
   }
 
-  // Areas valid for the selected region (the area select cascades from region).
-  const regionAreas = areas.filter((a) => a.region === draft.region);
+  // Merged region → area picker. Areas grouped by region (from the areas table).
+  const areasByRegion = new Map<RegionSlug, Area[]>();
+  for (const a of areas) {
+    const arr = areasByRegion.get(a.region) ?? [];
+    arr.push(a);
+    areasByRegion.set(a.region, arr);
+  }
 
-  function onRegionChange(next: RegionSlug) {
-    setDraft((d) => {
-      const stillValid = areas.some((a) => a.region === next && a.name === d.area);
-      return { ...d, region: next, area: stillValid ? d.area : "" };
-    });
+  const locationValue = draft.area
+    ? `a:${draft.region}|${draft.area}`
+    : `r:${draft.region}`;
+
+  function onLocationChange(v: string) {
+    if (v.startsWith("a:")) {
+      const [r, name] = v.slice(2).split("|");
+      setDraft((d) => ({ ...d, region: r as RegionSlug, area: name }));
+    } else {
+      setDraft((d) => ({ ...d, region: v.slice(2) as RegionSlug, area: "" }));
+    }
   }
 
   async function onSubmit(e: FormEvent) {
@@ -87,7 +103,6 @@ export function StoreForm({
       await supabase.from("cuisines").insert({ name: cuisine });
     }
 
-    // Upsert the store, then replace its tags.
     let storeId = editingId;
     if (editingId) {
       const { error } = await supabase.from("stores").update(row).eq("id", editingId);
@@ -123,14 +138,19 @@ export function StoreForm({
 
   return (
     <div className="card">
-      <h1 style={{ fontSize: 16, marginBottom: 16 }}>
+      <h1 style={{ fontSize: 16, marginBottom: 4 }}>
         {editingId ? `Edit “${initial?.name}”` : "New store"}
       </h1>
+      <p className="hint" style={{ marginTop: 0, marginBottom: 16 }}>
+        <span className="req">*</span> required
+      </p>
       {error && <div className="msg error">{error}</div>}
       <form onSubmit={onSubmit}>
         <div className="row">
           <div className="field">
-            <label htmlFor="type">Type</label>
+            <label htmlFor="type">
+              Type <Req />
+            </label>
             <select
               id="type"
               value={draft.type}
@@ -141,16 +161,23 @@ export function StoreForm({
             </select>
           </div>
           <div className="field">
-            <label htmlFor="region">Region</label>
+            <label htmlFor="location">
+              Location <Req /> <span className="hint">— region › area</span>
+            </label>
             <select
-              id="region"
-              value={draft.region}
-              onChange={(e) => onRegionChange(e.target.value as RegionSlug)}
+              id="location"
+              value={locationValue}
+              onChange={(e) => onLocationChange(e.target.value)}
             >
               {REGIONS.map((r) => (
-                <option key={r.slug} value={r.slug}>
-                  {r.name}
-                </option>
+                <optgroup key={r.slug} label={r.name}>
+                  <option value={`r:${r.slug}`}>Whole {r.name}</option>
+                  {(areasByRegion.get(r.slug) ?? []).map((a) => (
+                    <option key={a.id} value={`a:${r.slug}|${a.name}`}>
+                      {a.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </div>
@@ -158,7 +185,9 @@ export function StoreForm({
 
         <div className="row">
           <div className="field">
-            <label htmlFor="name">Name</label>
+            <label htmlFor="name">
+              Name <Req />
+            </label>
             <input
               id="name"
               type="text"
@@ -169,7 +198,7 @@ export function StoreForm({
           </div>
           <div className="field">
             <label htmlFor="slug">
-              Slug <span className="hint">— URL id, e.g. kopitiam-toast-tampines</span>
+              Slug <Req /> <span className="hint">— URL id, e.g. kopitiam-toast-tampines</span>
             </label>
             <input
               id="slug"
@@ -182,42 +211,23 @@ export function StoreForm({
           </div>
         </div>
 
-        <div className="row">
-          <div className="field">
-            <label htmlFor="cuisine">
-              Cuisine <span className="hint">— pick one or type a new one</span>
-            </label>
-            <input
-              id="cuisine"
-              type="text"
-              list="cuisine-list"
-              value={draft.cuisine}
-              onChange={(e) => set("cuisine", e.target.value)}
-              placeholder="e.g. Local, Japanese…"
-            />
-            <datalist id="cuisine-list">
-              {cuisines.map((c) => (
-                <option key={c.id} value={c.name} />
-              ))}
-            </datalist>
-          </div>
-          <div className="field">
-            <label htmlFor="area">
-              Area <span className="hint">— sub-location within the region</span>
-            </label>
-            <select
-              id="area"
-              value={draft.area ?? ""}
-              onChange={(e) => set("area", e.target.value)}
-            >
-              <option value="">— none —</option>
-              {regionAreas.map((a) => (
-                <option key={a.id} value={a.name}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="field">
+          <label htmlFor="cuisine">
+            Cuisine <span className="hint">— pick one or type a new one</span>
+          </label>
+          <input
+            id="cuisine"
+            type="text"
+            list="cuisine-list"
+            value={draft.cuisine}
+            onChange={(e) => set("cuisine", e.target.value)}
+            placeholder="e.g. Local, Japanese…"
+          />
+          <datalist id="cuisine-list">
+            {cuisines.map((c) => (
+              <option key={c.id} value={c.name} />
+            ))}
+          </datalist>
         </div>
 
         <div className="field">
@@ -244,7 +254,9 @@ export function StoreForm({
         {isApp ? (
           <div className="row">
             <div className="field">
-              <label htmlFor="ios">iOS download URL</label>
+              <label htmlFor="ios">
+                iOS download URL <span className="hint">— iOS or Android required</span>
+              </label>
               <input
                 id="ios"
                 type="url"
@@ -264,12 +276,15 @@ export function StoreForm({
           </div>
         ) : (
           <div className="field">
-            <label htmlFor="order">Order URL (behind the QR code)</label>
+            <label htmlFor="order">
+              Order URL <Req /> <span className="hint">— the link behind the QR code</span>
+            </label>
             <input
               id="order"
               type="url"
               value={draft.order_url ?? ""}
               onChange={(e) => set("order_url", e.target.value)}
+              required
             />
           </div>
         )}

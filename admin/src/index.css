@@ -74,10 +74,16 @@ label {
   font-size: 12px;
 }
 
+.req {
+  color: var(--danger);
+  font-weight: 700;
+}
+
 input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="url"],
+input[type="search"],
 textarea,
 select {
   width: 100%;
@@ -219,6 +225,16 @@ button.danger:hover {
 
 .store-item:last-child {
   border-bottom: none;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .badge {
