@@ -87,7 +87,7 @@ export function SearchClient({ stores }: { stores: Store[] }) {
               "shrink-0 rounded-full px-4 py-2 text-sm font-medium transition " +
               (type === t
                 ? "bg-stone-900 text-white dark:bg-white dark:text-stone-900"
-                : "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300")
+                : "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700")
             }
           >
             {t === "all" ? "All" : t === "app" ? "App" : "Order Link"}
