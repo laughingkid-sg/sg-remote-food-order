@@ -139,6 +139,7 @@ export function StoreForm({
       region: draft.region,
       area: orNull(draft.area ?? ""),
       address: orNull(draft.address ?? ""),
+      postal_code: orNull(draft.postal_code ?? ""),
       order_url: draft.type === "qr" ? orNull(draft.order_url ?? "") : null,
       app_ios_url: draft.type === "app" ? orNull(draft.app_ios_url ?? "") : null,
       app_android_url: draft.type === "app" ? orNull(draft.app_android_url ?? "") : null,
@@ -286,16 +287,33 @@ export function StoreForm({
           </datalist>
         </div>
 
-        <div className="field">
-          <label htmlFor="address">
-            Address <span className="hint">— usually only for order-link stores</span>
-          </label>
-          <input
-            id="address"
-            type="text"
-            value={draft.address ?? ""}
-            onChange={(e) => set("address", e.target.value)}
-          />
+        <div className="row">
+          <div className="field">
+            <label htmlFor="address">
+              Address <span className="hint">— usually only for order-link stores</span>
+            </label>
+            <input
+              id="address"
+              type="text"
+              value={draft.address ?? ""}
+              onChange={(e) => set("address", e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="postal">
+              Postal code <span className="hint">— 6 digits</span>
+            </label>
+            <input
+              id="postal"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              value={draft.postal_code ?? ""}
+              onChange={(e) => set("postal_code", e.target.value)}
+              placeholder="e.g. 529510"
+            />
+          </div>
         </div>
 
         <div className="field">

@@ -43,7 +43,8 @@ export function StoreList({
       s.slug.toLowerCase().includes(q) ||
       s.cuisine.toLowerCase().includes(q) ||
       s.region.toLowerCase().includes(q) ||
-      (s.area?.toLowerCase().includes(q) ?? false)
+      (s.area?.toLowerCase().includes(q) ?? false) ||
+      (s.postal_code?.includes(q) ?? false)
     );
   });
 

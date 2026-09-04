@@ -57,7 +57,8 @@ export function SearchClient({ stores }: { stores: Store[] }) {
         s.name.toLowerCase().includes(q) ||
         s.cuisine.toLowerCase().includes(q) ||
         (s.area?.toLowerCase().includes(q) ?? false) ||
-        (s.address?.toLowerCase().includes(q) ?? false)
+        (s.address?.toLowerCase().includes(q) ?? false) ||
+        (s.postalCode?.includes(q) ?? false)
       );
     });
   }, [stores, query, type, region, area]);
